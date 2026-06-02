@@ -1,0 +1,1382 @@
+{% extends "base.html" %}
+
+{% block title %}文字摘抄 - yunicyyu{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        min-height: calc(100vh - 60px);
+        background: linear-gradient(180deg, rgba(15, 15, 30, 0.3) 0%, rgba(20, 20, 45, 0.5) 50%, rgba(25, 25, 50, 0.4) 100%);
+        padding-bottom: 40px;
+    }
+    
+    .page-header {
+        text-align: center;
+        padding: 30px 0 25px;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .page-subtitle {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.45);
+        letter-spacing: 0.5px;
+    }
+    
+    .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        padding: 0 5px;
+    }
+    
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-select {
+        background: rgba(30, 30, 50, 0.95);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 10px;
+        padding: 10px 16px;
+        color: #fff;
+        font-size: 0.85rem;
+        cursor: pointer;
+        min-width: 110px;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-select:hover {
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .filter-select:focus {
+        outline: none;
+        border-color: rgba(102, 126, 234, 0.8);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    }
+    
+    .filter-select option {
+        background: #1e1e32;
+        color: #fff;
+    }
+    
+    .search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        color: rgba(255,255,255,0.35);
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+    
+    .search-input {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 10px;
+        padding: 10px 38px 10px 40px;
+        color: #fff;
+        font-size: 0.85rem;
+        width: 220px;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: rgba(102, 126, 234, 0.5);
+        background: rgba(255,255,255,0.1);
+        width: 260px;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .search-input::placeholder {
+        color: rgba(255,255,255,0.35);
+    }
+    
+    .search-clear {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.35);
+        cursor: pointer;
+        padding: 2px;
+        display: none;
+        font-size: 0.85rem;
+        transition: color 0.2s ease;
+    }
+    
+    .search-clear.show {
+        display: block;
+    }
+    
+    .search-clear:hover {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .clear-filter-btn {
+        background: rgba(245, 87, 108, 0.15);
+        border: 1px solid rgba(245, 87, 108, 0.3);
+        color: rgba(245, 87, 108, 0.9);
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: none;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .clear-filter-btn.show {
+        display: flex;
+    }
+    
+    .clear-filter-btn:hover {
+        background: rgba(245, 87, 108, 0.25);
+    }
+    
+    .action-group {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .random-btn {
+        background: rgba(102, 126, 234, 0.12);
+        border: 1px solid rgba(102, 126, 234, 0.25);
+        color: rgba(102, 126, 234, 0.95);
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .random-btn:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    .add-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+    }
+    
+    .add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .quotes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+    }
+    
+    .quote-card {
+        background: linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 28px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 
+            0 4px 20px rgba(0,0,0,0.15),
+            inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    
+    .quote-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .quote-card:hover {
+        background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%);
+        border-color: rgba(102, 126, 234, 0.25);
+        transform: translateY(-6px);
+        box-shadow: 
+            0 12px 40px rgba(0,0,0,0.25),
+            0 0 0 1px rgba(102, 126, 234, 0.1),
+            inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    
+    .quote-content {
+        font-size: 1.1rem;
+        font-weight: 500;
+        line-height: 1.9;
+        color: rgba(255,255,255,0.95);
+        margin-bottom: 18px;
+        flex: 1;
+        cursor: pointer;
+        position: relative;
+        letter-spacing: 0.3px;
+    }
+    
+    .quote-content:hover::after {
+        content: '点击复制';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(102, 126, 234, 0.95);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 400;
+        white-space: nowrap;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .highlight {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .quote-source {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.45);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .quote-source i {
+        font-size: 0.75rem;
+        opacity: 0.6;
+    }
+    
+    .quote-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+    
+    .quote-tag {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        color: rgba(180, 160, 255, 0.95);
+        padding: 4px 12px;
+        border-radius: 14px;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(102, 126, 234, 0.15);
+    }
+    
+    .quote-tag.tag-cure {
+        background: linear-gradient(135deg, rgba(56, 239, 125, 0.15) 0%, rgba(17, 153, 142, 0.15) 100%);
+        color: rgba(100, 230, 150, 0.95);
+        border-color: rgba(56, 239, 125, 0.2);
+    }
+    
+    .quote-tag.tag-insight {
+        background: linear-gradient(135deg, rgba(240, 147, 251, 0.15) 0%, rgba(245, 87, 108, 0.15) 100%);
+        color: rgba(245, 180, 220, 0.95);
+        border-color: rgba(240, 147, 251, 0.2);
+    }
+    
+    .quote-tag.tag-excerpt {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+        color: rgba(180, 160, 255, 0.95);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+    
+    .quote-tag.tag-handwrite {
+        background: linear-gradient(135deg, rgba(79, 172, 254, 0.15) 0%, rgba(0, 242, 254, 0.15) 100%);
+        color: rgba(130, 200, 255, 0.95);
+        border-color: rgba(79, 172, 254, 0.2);
+    }
+    
+    .quote-tag.tag-travel {
+        background: linear-gradient(135deg, rgba(250, 200, 100, 0.15) 0%, rgba(245, 150, 80, 0.15) 100%);
+        color: rgba(255, 210, 130, 0.95);
+        border-color: rgba(250, 200, 100, 0.2);
+    }
+    
+    .quote-tag.tag-book {
+        background: linear-gradient(135deg, rgba(130, 100, 200, 0.15) 0%, rgba(160, 120, 220, 0.15) 100%);
+        color: rgba(190, 170, 240, 0.95);
+        border-color: rgba(130, 100, 200, 0.2);
+    }
+    
+    .quote-tag.tag-movie {
+        background: linear-gradient(135deg, rgba(255, 100, 130, 0.15) 0%, rgba(255, 140, 100, 0.15) 100%);
+        color: rgba(255, 150, 150, 0.95);
+        border-color: rgba(255, 100, 130, 0.2);
+    }
+    
+    .quote-tag.tag-life {
+        background: linear-gradient(135deg, rgba(100, 200, 180, 0.15) 0%, rgba(80, 180, 200, 0.15) 100%);
+        color: rgba(140, 220, 200, 0.95);
+        border-color: rgba(100, 200, 180, 0.2);
+    }
+    
+    .quote-tag.highlight-tag {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+        color: #fff;
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .quote-image {
+        margin-top: 12px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .quote-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    .quote-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    
+    .quote-date {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.35);
+    }
+    
+    .quote-actions {
+        display: flex;
+        gap: 6px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .quote-card:hover .quote-actions {
+        opacity: 1;
+    }
+    
+    .action-btn {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: rgba(255,255,255,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+    }
+    
+    .action-btn:hover {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+    }
+    
+    .action-btn.delete:hover {
+        background: rgba(245, 87, 108, 0.3);
+        color: #f5576c;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 100px 20px;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .empty-state .empty-illustration {
+        font-size: 5rem;
+        margin-bottom: 25px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 4px 20px rgba(102, 126, 234, 0.2));
+    }
+    
+    .empty-state p {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        color: rgba(255,255,255,0.6);
+    }
+    
+    .empty-state .hint {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .empty-state .action-hint {
+        margin-top: 30px;
+    }
+    
+    .empty-state .action-hint button {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        color: rgba(180, 160, 255, 0.95);
+        padding: 12px 28px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .empty-state .action-hint button:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
+    }
+    
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.75);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .modal-overlay.show {
+        display: flex;
+    }
+    
+    .modal-content {
+        background: #1a1a2e;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .modal-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.5);
+        font-size: 1.4rem;
+        cursor: pointer;
+        padding: 5px;
+        line-height: 1;
+    }
+    
+    .modal-close:hover {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-label {
+        display: block;
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.7);
+        margin-bottom: 6px;
+    }
+    
+    .form-label .required {
+        color: #f5576c;
+        margin-left: 2px;
+    }
+    
+    .form-input {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgba(30, 30, 50, 0.95);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: #fff;
+        font-size: 0.95rem;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: rgba(102, 126, 234, 0.8);
+    }
+    
+    .form-input::placeholder {
+        color: rgba(255,255,255,0.35);
+    }
+    
+    .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+    
+    .form-hint {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.4);
+        margin-top: 4px;
+    }
+    
+    .quick-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .quick-tag {
+        background: rgba(102, 126, 234, 0.15);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        color: rgba(102, 126, 234, 0.9);
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-tag:hover {
+        background: rgba(102, 126, 234, 0.3);
+        border-color: rgba(102, 126, 234, 0.5);
+        color: #fff;
+    }
+    
+    .quick-tag.active {
+        background: rgba(102, 126, 234, 0.4);
+        border-color: #667eea;
+        color: #fff;
+    }
+    
+    .quick-tag-delete {
+        margin-left: 4px;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .quick-tag:hover .quick-tag-delete {
+        opacity: 1;
+    }
+    
+    .quick-tag-add {
+        background: rgba(255,255,255,0.05);
+        border: 1px dashed rgba(102, 126, 234, 0.4);
+        color: rgba(102, 126, 234, 0.7);
+    }
+    
+    .quick-tag-add:hover {
+        background: rgba(102, 126, 234, 0.15);
+        border-style: solid;
+        color: rgba(102, 126, 234, 0.9);
+    }
+    
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-cancel {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.15);
+        color: rgba(255,255,255,0.7);
+    }
+    
+    .btn-cancel:hover {
+        background: rgba(255,255,255,0.15);
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .random-modal {
+        text-align: center;
+        padding: 40px 30px;
+    }
+    
+    .random-quote-text {
+        font-size: 1.2rem;
+        line-height: 2;
+        color: rgba(255,255,255,0.95);
+        margin-bottom: 20px;
+        font-style: italic;
+    }
+    
+    .random-quote-source {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 25px;
+    }
+    
+    .random-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .random-action-btn {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.15);
+        color: rgba(255,255,255,0.7);
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .random-action-btn:hover {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+    }
+    
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 50px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 2000;
+        font-size: 0.9rem;
+    }
+    
+    .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    
+    .total-count {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.35);
+        text-align: center;
+        margin-top: 40px;
+        padding: 15px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .total-count span {
+        color: rgba(102, 126, 234, 0.8);
+        font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .filter-group, .action-group {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .filter-select, .search-input {
+            flex: 1;
+        }
+        
+        .quotes-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quote-actions {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title"><i class="fas fa-feather-alt me-2"></i>文字摘抄</h1>
+        <p class="page-subtitle">收藏喜欢的句子，偶尔翻翻，治愈自己</p>
+    </div>
+    
+    <div class="toolbar">
+        <div class="filter-group">
+            <select class="filter-select" id="tagFilter">
+                <option value="">全部标签</option>
+                {% for tag in tags %}
+                <option value="{{ tag }}">{{ tag }}</option>
+                {% endfor %}
+            </select>
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="搜句子、标签都可以…">
+                <button class="search-clear" id="searchClear" onclick="clearSearch()" title="清空搜索">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <button class="clear-filter-btn" id="clearFilterBtn" onclick="clearAllFilters()">
+                <i class="fas fa-redo"></i>重置
+            </button>
+        </div>
+        <div class="action-group">
+            <button class="random-btn" onclick="showRandomQuote()">
+                <i class="fas fa-random"></i>随机一句
+            </button>
+            <button class="add-btn" onclick="openAddModal()">
+                <i class="fas fa-plus"></i>添加摘抄
+            </button>
+        </div>
+    </div>
+    
+    <div class="quotes-grid" id="quotesGrid">
+        {% if quotes %}
+            {% for quote in quotes %}
+            <div class="quote-card" data-id="{{ quote.id }}">
+                <div class="quote-content" onclick="copyText('{{ quote.content | replace("'", "\\'") }}')">
+                    {{ quote.content }}
+                </div>
+                {% if quote.source %}
+                <div class="quote-source">
+                    <i class="fas fa-bookmark"></i>
+                    {{ quote.source }}
+                </div>
+                {% endif %}
+                {% if quote.tags %}
+                <div class="quote-tags">
+                    {% for tag in quote.tags.split(',') %}
+                        {% if tag.strip() %}
+                        {% set tag_name = tag.strip() %}
+                        {% set tag_class = 'tag-' + {'治愈': 'cure', '感悟': 'insight', '摘抄': 'excerpt', '手写': 'handwrite', '旅行': 'travel', '读书': 'book', '电影': 'movie', '生活': 'life'}.get(tag_name, '') %}
+                        <span class="quote-tag {{ tag_class }}">{{ tag_name }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if quote.image_path %}
+                <div class="quote-image">
+                    <img src="/static/{{ quote.image_path }}" alt="配图">
+                </div>
+                {% endif %}
+                <div class="quote-footer">
+                    <span class="quote-date">{{ quote.created_at[:10] if quote.created_at else '' }}</span>
+                    <div class="quote-actions">
+                        <button class="action-btn" onclick="openEditModal({{ quote.id }})" title="编辑">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteQuote({{ quote.id }})" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-illustration"><i class="fas fa-feather-alt"></i></div>
+                <p>还没有收藏的句子</p>
+                <p class="hint">记录那些打动你的文字，让美好停留</p>
+                <div class="action-hint">
+                    <button onclick="openAddModal()"><i class="fas fa-plus me-2"></i>添加第一句</button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="total-count" id="totalCount">已收藏 <span>{{ count }}</span> 条摘抄</div>
+</div>
+
+<div class="modal-overlay" id="quoteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">添加摘抄</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="quoteId">
+            <div class="form-group">
+                <label class="form-label">内容 <span class="required">*</span></label>
+                <textarea class="form-input form-textarea" id="contentInput" placeholder="记录你喜欢的句子..."></textarea>
+                <p class="form-hint">Enter 保存 · Ctrl + Enter 换行</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">来源</label>
+                <input type="text" class="form-input" id="sourceInput" placeholder="可选，如书名、作者、随手记">
+                <p class="form-hint">按 Enter 快速保存</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">标签</label>
+                <input type="text" class="form-input" id="tagsInput" placeholder="可选，多个标签用逗号分隔">
+                <p class="form-hint">例如：治愈, 感悟, 摘抄, 手写 · Enter 保存</p>
+                <div class="quick-tags" id="quickTags"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+            <button class="btn btn-save" onclick="saveQuote()">保存</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="randomModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fas fa-random me-2"></i>随机一句</h3>
+            <button class="modal-close" onclick="closeRandomModal()">&times;</button>
+        </div>
+        <div class="random-modal">
+            <div class="random-quote-text" id="randomQuoteText"></div>
+            <div class="random-quote-source" id="randomQuoteSource"></div>
+            <div class="random-actions">
+                <button class="random-action-btn" onclick="copyRandomQuote()">
+                    <i class="fas fa-copy"></i>复制
+                </button>
+                <button class="random-action-btn" onclick="showRandomQuote()">
+                    <i class="fas fa-redo"></i>换一条
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentQuoteId = null;
+    let currentRandomQuote = null;
+    let currentKeyword = '';
+    let currentTag = '';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('tagFilter').addEventListener('change', function() {
+            currentTag = this.value;
+            updateClearButton();
+            filterQuotes();
+        });
+        
+        document.getElementById('searchInput').addEventListener('input', debounce(function() {
+            currentKeyword = this.value.trim();
+            updateSearchClear();
+            updateClearButton();
+            filterQuotes();
+        }, 300));
+        
+        document.getElementById('quoteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        
+        document.getElementById('randomModal').addEventListener('click', function(e) {
+            if (e.target === this) closeRandomModal();
+        });
+        
+        document.getElementById('contentInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                saveQuote();
+            }
+        });
+        
+        document.getElementById('sourceInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveQuote();
+            }
+        });
+        
+        document.getElementById('tagsInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveQuote();
+            }
+        });
+        
+        loadQuickTags();
+    });
+    
+    let quickTagsList = [];
+    
+    function loadQuickTags() {
+        fetch('/quotes/api/quick-tags')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    quickTagsList = data.tags;
+                    renderQuickTags();
+                }
+            });
+    }
+    
+    function renderQuickTags() {
+        const container = document.getElementById('quickTags');
+        let html = '';
+        
+        quickTagsList.forEach(tag => {
+            html += `<span class="quick-tag" data-tag="${tag}">${tag}<i class="fas fa-times quick-tag-delete" onclick="event.stopPropagation(); deleteQuickTag('${tag}')"></i></span>`;
+        });
+        
+        html += `<span class="quick-tag quick-tag-add" onclick="addQuickTag()"><i class="fas fa-plus"></i></span>`;
+        
+        container.innerHTML = html;
+        
+        container.querySelectorAll('.quick-tag:not(.quick-tag-add)').forEach(tag => {
+            tag.addEventListener('click', function(e) {
+                if (e.target.classList.contains('quick-tag-delete')) return;
+                
+                const tagsInput = document.getElementById('tagsInput');
+                const currentTags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t);
+                const newTag = this.dataset.tag;
+                
+                if (currentTags.includes(newTag)) {
+                    const index = currentTags.indexOf(newTag);
+                    currentTags.splice(index, 1);
+                    this.classList.remove('active');
+                } else {
+                    currentTags.push(newTag);
+                    this.classList.add('active');
+                }
+                
+                tagsInput.value = currentTags.join(', ');
+            });
+        });
+    }
+    
+    function addQuickTag() {
+        const tag = prompt('请输入新标签：');
+        if (!tag || !tag.trim()) return;
+        
+        const tagName = tag.trim();
+        
+        fetch('/quotes/api/quick-tags/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: tagName})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                quickTagsList.push(tagName);
+                renderQuickTags();
+                showToast('标签添加成功');
+            } else {
+                showToast(data.message || '添加失败', 'error');
+            }
+        });
+    }
+    
+    function deleteQuickTag(tagName) {
+        if (!confirm(`确定删除标签「${tagName}」吗？`)) return;
+        
+        fetch('/quotes/api/quick-tags/delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: tagName})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                quickTagsList = quickTagsList.filter(t => t !== tagName);
+                renderQuickTags();
+                showToast('标签已删除');
+            }
+        });
+    }
+    
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+    
+    function updateSearchClear() {
+        const searchInput = document.getElementById('searchInput');
+        const searchClear = document.getElementById('searchClear');
+        if (searchInput.value.trim()) {
+            searchClear.classList.add('show');
+        } else {
+            searchClear.classList.remove('show');
+        }
+    }
+    
+    function updateClearButton() {
+        const clearBtn = document.getElementById('clearFilterBtn');
+        if (currentTag || currentKeyword) {
+            clearBtn.classList.add('show');
+        } else {
+            clearBtn.classList.remove('show');
+        }
+    }
+    
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        currentKeyword = '';
+        updateSearchClear();
+        updateClearButton();
+        filterQuotes();
+    }
+    
+    function clearAllFilters() {
+        document.getElementById('tagFilter').value = '';
+        document.getElementById('searchInput').value = '';
+        currentTag = '';
+        currentKeyword = '';
+        updateSearchClear();
+        updateClearButton();
+        filterQuotes();
+    }
+    
+    function filterQuotes() {
+        const tag = document.getElementById('tagFilter').value;
+        const keyword = document.getElementById('searchInput').value.trim();
+        
+        let url = '/quotes/api/list?';
+        if (tag) url += `tag=${encodeURIComponent(tag)}&`;
+        if (keyword) url += `keyword=${encodeURIComponent(keyword)}`;
+        
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    renderQuotes(data.quotes, keyword);
+                }
+            });
+    }
+    
+    function highlightText(text, keyword) {
+        if (!keyword) return escapeHtml(text);
+        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedKeyword})`, 'gi');
+        return escapeHtml(text).replace(regex, '<span class="highlight">$1</span>');
+    }
+    
+    function renderQuotes(quotes, keyword) {
+        const container = document.getElementById('quotesGrid');
+        
+        if (quotes.length === 0) {
+            const hasFilter = currentTag || currentKeyword;
+            if (hasFilter) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-search"></i>
+                        <p>没有找到相关的句子哦</p>
+                        <p class="hint">换个关键词试试吧</p>
+                        <div class="action-hint">
+                            <button onclick="clearAllFilters()">清空筛选</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-feather-alt"></i>
+                        <p>还没有收藏的句子</p>
+                        <p class="hint">快去记录一句喜欢的吧</p>
+                    </div>
+                `;
+            }
+            return;
+        }
+        
+        let html = '';
+        quotes.forEach(quote => {
+            const tagsHtml = quote.tags ? quote.tags.split(',').filter(t => t.trim()).map(tag => {
+                const tagText = tag.trim();
+                const isHighlight = keyword && tagText.toLowerCase().includes(keyword.toLowerCase());
+                return `<span class="quote-tag${isHighlight ? ' highlight-tag' : ''}">${highlightText(tagText, keyword)}</span>`;
+            }).join('') : '';
+            
+            const sourceHtml = quote.source ? 
+                `<div class="quote-source"><i class="fas fa-bookmark"></i>${highlightText(quote.source, keyword)}</div>` : '';
+            
+            const imageHtml = quote.image_path ? 
+                `<div class="quote-image"><img src="/static/${quote.image_path}" alt="配图"></div>` : '';
+            
+            html += `
+                <div class="quote-card" data-id="${quote.id}">
+                    <div class="quote-content" onclick="copyText('${escapeForJs(quote.content)}')">
+                        ${highlightText(quote.content, keyword)}
+                    </div>
+                    ${sourceHtml}
+                    ${tagsHtml ? `<div class="quote-tags">${tagsHtml}</div>` : ''}
+                    ${imageHtml}
+                    <div class="quote-footer">
+                        <span class="quote-date">${quote.created_at ? quote.created_at.substring(0, 10) : ''}</span>
+                        <div class="quote-actions">
+                            <button class="action-btn" onclick="openEditModal(${quote.id})" title="编辑">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="action-btn delete" onclick="deleteQuote(${quote.id})" title="删除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        updateTotalCount();
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function escapeForJs(text) {
+        return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+    }
+    
+    function updateTotalCount() {
+        fetch('/quotes/api/count')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('totalCount').textContent = `已收藏 ${data.count} 条摘抄`;
+                }
+            });
+    }
+    
+    function openAddModal() {
+        currentQuoteId = null;
+        document.getElementById('modalTitle').textContent = '添加摘抄';
+        document.getElementById('quoteId').value = '';
+        document.getElementById('contentInput').value = '';
+        document.getElementById('sourceInput').value = '';
+        document.getElementById('tagsInput').value = '';
+        updateQuickTagActive([]);
+        document.getElementById('quoteModal').classList.add('show');
+        document.getElementById('contentInput').focus();
+    }
+    
+    function openEditModal(quoteId) {
+        currentQuoteId = quoteId;
+        
+        fetch(`/quotes/api/record/${quoteId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const quote = data.quote;
+                    document.getElementById('modalTitle').textContent = '编辑摘抄';
+                    document.getElementById('quoteId').value = quote.id;
+                    document.getElementById('contentInput').value = quote.content;
+                    document.getElementById('sourceInput').value = quote.source || '';
+                    document.getElementById('tagsInput').value = quote.tags || '';
+                    
+                    const currentTags = (quote.tags || '').split(',').map(tag => tag.trim()).filter(t => t);
+                    updateQuickTagActive(currentTags);
+                    
+                    document.getElementById('quoteModal').classList.add('show');
+                }
+            });
+    }
+    
+    function updateQuickTagActive(activeTags) {
+        document.querySelectorAll('.quick-tag:not(.quick-tag-add)').forEach(t => {
+            if (activeTags.includes(t.dataset.tag)) {
+                t.classList.add('active');
+            } else {
+                t.classList.remove('active');
+            }
+        });
+    }
+    
+    function closeModal() {
+        document.getElementById('quoteModal').classList.remove('show');
+    }
+    
+    function saveQuote() {
+        const content = document.getElementById('contentInput').value.trim();
+        const source = document.getElementById('sourceInput').value.trim();
+        const tags = document.getElementById('tagsInput').value.trim();
+        
+        if (!content) {
+            showToast('内容不能为空', 'error');
+            return;
+        }
+        
+        const data = { content, source, tags };
+        
+        if (currentQuoteId) {
+            fetch(`/quotes/api/edit/${currentQuoteId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('修改成功');
+                    closeModal();
+                    filterQuotes();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            });
+        } else {
+            fetch('/quotes/api/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('添加成功');
+                    closeModal();
+                    filterQuotes();
+                } else {
+                    showToast(result.message, 'error');
+                }
+            });
+        }
+    }
+    
+    function deleteQuote(quoteId) {
+        if (!confirm('确定要删除这条摘抄吗？')) return;
+        
+        fetch(`/quotes/api/delete/${quoteId}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    showToast('删除成功');
+                    filterQuotes();
+                }
+            });
+    }
+    
+    function copyText(text) {
+        const decodedText = text.replace(/\\n/g, '\n').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+        navigator.clipboard.writeText(decodedText).then(() => {
+            showToast('已复制到剪贴板');
+        }).catch(() => {
+            showToast('复制失败', 'error');
+        });
+    }
+    
+    function showRandomQuote() {
+        fetch('/quotes/api/random')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    currentRandomQuote = data.quote;
+                    document.getElementById('randomQuoteText').textContent = data.quote.content;
+                    document.getElementById('randomQuoteSource').textContent = data.quote.source ? `—— ${data.quote.source}` : '';
+                    document.getElementById('randomModal').classList.add('show');
+                } else {
+                    showToast('暂无摘抄', 'error');
+                }
+            });
+    }
+    
+    function closeRandomModal() {
+        document.getElementById('randomModal').classList.remove('show');
+    }
+    
+    function copyRandomQuote() {
+        if (currentRandomQuote) {
+            navigator.clipboard.writeText(currentRandomQuote.content).then(() => {
+                showToast('已复制到剪贴板');
+            }).catch(() => {
+                showToast('复制失败', 'error');
+            });
+        }
+    }
+    
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.background = type === 'success' 
+            ? 'linear-gradient(135deg, #38ef7d 0%, #11998e 100%)'
+            : 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+</script>
+{% endblock %}

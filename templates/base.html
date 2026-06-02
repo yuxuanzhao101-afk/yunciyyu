@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}yunicyyu{% endblock %}</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            color: #fff;
+            cursor: none;
+        }
+        
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background: #38ef7d;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 99999;
+            transition: transform 0.06s ease;
+            box-shadow: 0 0 10px #38ef7d, 0 0 20px #38ef7d;
+        }
+        
+        .cursor-outline {
+            width: 24px;
+            height: 24px;
+            border: 1.5px solid rgba(56, 239, 125, 0.7);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 99998;
+            transition: all 0.06s ease-out;
+            box-shadow: 0 0 10px rgba(56, 239, 125, 0.3);
+        }
+        
+        .cursor-trail {
+            width: 8px;
+            height: 8px;
+            background: rgba(56, 239, 125, 0.4);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 99997;
+        }
+        
+        .cursor-outline.hover {
+            transform: scale(1.4);
+            border-color: #11998e;
+            background: rgba(56, 239, 125, 0.15);
+            box-shadow: 0 0 15px rgba(56, 239, 125, 0.5);
+        }
+        
+        .cursor-dot.click {
+            transform: scale(1.8);
+            background: #2ecc71;
+        }
+        
+        .navbar-custom {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.8) !important;
+            font-weight: 500;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: #fff !important;
+        }
+        
+        .nav-link.active {
+            color: #667eea !important;
+        }
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+        }
+        
+        .nav-link-icon {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .nav-link-icon:hover {
+            opacity: 1;
+        }
+        
+        .nav-link-icon i {
+            font-size: 0.9rem;
+        }
+        
+        .main-content {
+            padding: 30px 0;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.9rem;
+        }
+        
+        .footer a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: #667eea;
+        }
+        
+        a, button, input, select, textarea, .clickable {
+            cursor: none !important;
+        }
+        
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <div class="cursor-dot" id="cursorDot"></div>
+    <div class="cursor-outline" id="cursorOutline"></div>
+    <div class="cursor-trail" id="cursorTrail1"></div>
+    <div class="cursor-trail" id="cursorTrail2"></div>
+    <div class="cursor-trail" id="cursorTrail3"></div>
+    
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-star me-2"></i>yunicyyu
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="/">
+                            <i class="fas fa-home me-1"></i>首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('schedule') %}active{% endif %}" href="/schedule">
+                            <i class="fas fa-calendar-alt me-1"></i>日程
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('finance') %}active{% endif %}" href="/finance">
+                            <i class="fas fa-wallet me-1"></i>记账
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-book me-1"></i>笔记
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-bullseye me-1"></i>目标
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-icon {% if request.endpoint and request.endpoint.startswith('first_times') %}active{% endif %}" 
+                           href="{{ url_for('first_times.index') }}" title="人生记录">
+                            <i class="fas fa-heart"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-icon {% if request.endpoint and request.endpoint.startswith('quotes') %}active{% endif %}" 
+                           href="{{ url_for('quotes.index') }}" title="文字摘抄">
+                            <i class="fas fa-feather-alt"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <footer class="footer">
+        <p>© 2024 yunicyyu · 做让自己开心的事 </p>
+        <p class="mt-2">
+            <a href="#"><i class="fab fa-github me-1"></i>GitHub</a>
+            <span class="mx-3">|</span>
+            <a href="#"><i class="fas fa-envelope me-1"></i>联系我</a>
+        </p>
+    </footer>
+    
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const cursorDot = document.getElementById('cursorDot');
+        const cursorOutline = document.getElementById('cursorOutline');
+        const trails = [
+            document.getElementById('cursorTrail1'),
+            document.getElementById('cursorTrail2'),
+            document.getElementById('cursorTrail3')
+        ];
+        
+        let mouseX = 0, mouseY = 0;
+        let outlineX = 0, outlineY = 0;
+        let trailPositions = [
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
+            { x: 0, y: 0 }
+        ];
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            cursorDot.style.left = mouseX - 4 + 'px';
+            cursorDot.style.top = mouseY - 4 + 'px';
+        });
+        
+        function animateCursor() {
+            outlineX += (mouseX - outlineX) * 0.4;
+            outlineY += (mouseY - outlineY) * 0.4;
+            
+            cursorOutline.style.left = outlineX - 12 + 'px';
+            cursorOutline.style.top = outlineY - 12 + 'px';
+            
+            const trailSpeeds = [0.25, 0.18, 0.12];
+            const trailSizes = [6, 5, 4];
+            const trailOpacities = [0.35, 0.25, 0.15];
+            
+            trails.forEach((trail, i) => {
+                trailPositions[i].x += (mouseX - trailPositions[i].x) * trailSpeeds[i];
+                trailPositions[i].y += (mouseY - trailPositions[i].y) * trailSpeeds[i];
+                
+                trail.style.left = trailPositions[i].x - trailSizes[i] / 2 + 'px';
+                trail.style.top = trailPositions[i].y - trailSizes[i] / 2 + 'px';
+                trail.style.width = trailSizes[i] + 'px';
+                trail.style.height = trailSizes[i] + 'px';
+                trail.style.opacity = trailOpacities[i];
+            });
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+        
+        const hoverElements = document.querySelectorAll('a, button, input, select, textarea, .clickable, .stat-card, .module-card, .today-card');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorOutline.classList.add('hover');
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorOutline.classList.remove('hover');
+            });
+        });
+        
+        document.addEventListener('mousedown', () => {
+            cursorDot.classList.add('click');
+        });
+        document.addEventListener('mouseup', () => {
+            cursorDot.classList.remove('click');
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

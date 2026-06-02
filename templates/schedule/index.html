@@ -1,0 +1,1226 @@
+{% extends "base.html" %}
+
+{% block title %}日程管理 - yunicyyu{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header-section {
+        text-align: center;
+        padding: 30px 0 20px;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .page-subtitle {
+        color: rgba(255,255,255,0.6);
+    }
+    
+    .card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .calendar-nav-btn {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .calendar-nav-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+    
+    .calendar-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        min-width: 180px;
+        text-align: center;
+    }
+    
+    .today-btn {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.5);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .today-btn:hover {
+        background: white;
+        color: #667eea;
+    }
+    
+    .view-toggle {
+        display: flex;
+        background: rgba(255,255,255,0.1);
+        border-radius: 30px;
+        padding: 4px;
+    }
+    
+    .view-toggle-btn {
+        background: transparent;
+        border: none;
+        color: rgba(255,255,255,0.7);
+        padding: 8px 18px;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    
+    .view-toggle-btn.active {
+        background: white;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .calendar-body {
+        padding: 0;
+    }
+    
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .weekday {
+        padding: 15px 5px;
+        text-align: center;
+        font-weight: 600;
+        color: rgba(255,255,255,0.6);
+        font-size: 0.9rem;
+    }
+    
+    .weekday.weekend {
+        color: #f5576c;
+    }
+    
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .calendar-day {
+        min-height: 90px;
+        padding: 8px;
+        border: 1px solid rgba(255,255,255,0.05);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .calendar-day:hover {
+        background: rgba(255,255,255,0.05);
+    }
+    
+    .calendar-day.other-month {
+        opacity: 0.3;
+    }
+    
+    .calendar-day.today {
+        background: rgba(102, 126, 234, 0.2);
+        border: 2px solid #667eea;
+    }
+    
+    .calendar-day.selected {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .day-number {
+        font-size: 1rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 5px;
+    }
+    
+    .day-schedules {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    
+    .schedule-dot {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-left: 3px solid;
+    }
+    
+    .schedule-dot.normal {
+        background: rgba(102, 126, 234, 0.3);
+        border-left-color: #667eea;
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .schedule-dot.urgent {
+        background: rgba(245, 87, 108, 0.3);
+        border-left-color: #f5576c;
+        color: #f5576c;
+        font-weight: 600;
+    }
+    
+    .schedule-dot.completed {
+        background: rgba(255,255,255,0.1);
+        border-left-color: #666;
+        color: rgba(255,255,255,0.5);
+        text-decoration: line-through;
+    }
+    
+    .more-schedules {
+        font-size: 0.75rem;
+        color: #667eea;
+        text-align: center;
+        padding: 2px;
+    }
+    
+    .schedule-section {
+        margin-top: 20px;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 6px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        color: rgba(255,255,255,0.7);
+    }
+    
+    .filter-tab:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+    
+    .filter-tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: white;
+    }
+    
+    .schedule-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .schedule-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 15px 18px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 15px;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .schedule-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: #667eea;
+    }
+    
+    .schedule-item.urgent::before {
+        background: linear-gradient(180deg, #f5576c 0%, #f093fb 100%);
+    }
+    
+    .schedule-item.completed::before {
+        background: #666;
+    }
+    
+    .schedule-item:hover {
+        background: rgba(255,255,255,0.08);
+        transform: translateX(5px);
+    }
+    
+    .schedule-checkbox {
+        width: 24px;
+        height: 24px;
+        margin-right: 15px;
+        margin-top: 2px;
+        cursor: pointer;
+        accent-color: #667eea;
+        flex-shrink: 0;
+    }
+    
+    .schedule-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .schedule-text {
+        font-size: 1rem;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 6px;
+        word-break: break-word;
+    }
+    
+    .schedule-item.completed .schedule-text {
+        text-decoration: line-through;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .schedule-meta {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.5);
+        flex-wrap: wrap;
+    }
+    
+    .schedule-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .priority-badge {
+        font-size: 0.75rem;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .priority-badge.urgent {
+        background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        color: white;
+        animation: pulse 2s infinite;
+    }
+    
+    .priority-badge.normal {
+        background: rgba(102, 126, 234, 0.3);
+        color: #667eea;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .schedule-actions {
+        display: flex;
+        gap: 8px;
+        margin-left: 15px;
+        flex-shrink: 0;
+    }
+    
+    .action-btn {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.6);
+    }
+    
+    .action-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .action-btn.edit:hover {
+        background: rgba(102, 126, 234, 0.3);
+        color: #667eea;
+    }
+    
+    .action-btn.delete:hover {
+        background: rgba(245, 87, 108, 0.3);
+        color: #f5576c;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .empty-state-text {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    
+    .empty-state-hint {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.3);
+    }
+    
+    .add-schedule-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        font-size: 1.8rem;
+        cursor: pointer;
+        box-shadow: 0 5px 25px rgba(102, 126, 234, 0.5);
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .add-schedule-btn:hover {
+        transform: scale(1.1) rotate(90deg);
+        box-shadow: 0 8px 35px rgba(102, 126, 234, 0.6);
+    }
+    
+    .modal-content {
+        background: #1a1a2e;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 20px 25px;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .modal-title {
+        font-weight: 600;
+        color: white;
+    }
+    
+    .btn-close {
+        filter: brightness(0) invert(1);
+    }
+    
+    .modal-body {
+        padding: 25px;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 8px;
+    }
+    
+    .form-control, .form-select {
+        background: rgba(30, 30, 50, 0.95);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 12px 15px;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background: rgba(30, 30, 50, 1);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        color: white;
+    }
+    
+    .form-control::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .form-select option {
+        background: #1e1e32;
+        color: white;
+        padding: 10px 15px;
+    }
+    
+    .form-select option:checked {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 12px 30px;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+    
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
+    
+    .toast {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    }
+    
+    .toast.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+    
+    .toast.error {
+        background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        color: white;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(26, 26, 46, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+    }
+    
+    .loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255,255,255,0.1);
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 992px) {
+        .calendar-day {
+            min-height: 70px;
+            padding: 5px;
+        }
+        
+        .schedule-dot {
+            font-size: 0.65rem;
+            padding: 1px 4px;
+        }
+        
+        .day-number {
+            font-size: 0.9rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 1.6rem;
+        }
+        
+        .calendar-header {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .calendar-nav {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .calendar-title {
+            order: -1;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .today-btn {
+            width: 100%;
+        }
+        
+        .view-toggle {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .calendar-day {
+            min-height: 60px;
+        }
+        
+        .day-schedules {
+            display: none;
+        }
+        
+        .calendar-day.has-schedules::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+        
+        .calendar-day.has-urgent::after {
+            background: #f5576c;
+        }
+        
+        .schedule-item {
+            padding: 12px 15px;
+        }
+        
+        .schedule-actions {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+        }
+        
+        .add-schedule-btn {
+            bottom: 20px;
+            right: 20px;
+            width: 55px;
+            height: 55px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container">
+    <div class="page-header-section">
+        <h1 class="page-title"><i class="fas fa-calendar-alt me-2"></i>日程管理</h1>
+        <p class="page-subtitle">高效管理每一天，让生活更有条理</p>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" onclick="changeMonth(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="calendar-title" id="calendarTitle"></div>
+                        <button class="calendar-nav-btn" onclick="changeMonth(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <button class="today-btn" onclick="goToToday()">
+                        <i class="fas fa-calendar-day me-1"></i>回到今天
+                    </button>
+                    <div class="view-toggle">
+                        <button class="view-toggle-btn active" onclick="switchView('calendar')" id="calendarViewBtn">
+                            <i class="fas fa-calendar me-1"></i>日历
+                        </button>
+                        <button class="view-toggle-btn" onclick="switchView('list')" id="listViewBtn">
+                            <i class="fas fa-list me-1"></i>列表
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-body" id="calendarBody">
+                    <div class="calendar-weekdays">
+                        <div class="weekday weekend">日</div>
+                        <div class="weekday">一</div>
+                        <div class="weekday">二</div>
+                        <div class="weekday">三</div>
+                        <div class="weekday">四</div>
+                        <div class="weekday">五</div>
+                        <div class="weekday weekend">六</div>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px 25px;">
+                    <i class="fas fa-tasks me-2"></i>
+                    <span id="selectedDateTitle">今日日程</span>
+                </div>
+                <div class="card-body" style="padding: 20px 25px;">
+                    <div class="filter-tabs mb-3">
+                        <button class="filter-tab active" onclick="filterSchedules('all')" data-filter="all">全部</button>
+                        <button class="filter-tab" onclick="filterSchedules('pending')" data-filter="pending">待办</button>
+                        <button class="filter-tab" onclick="filterSchedules('completed')" data-filter="completed">已完成</button>
+                        <button class="filter-tab" onclick="filterSchedules('urgent')" data-filter="urgent">紧急</button>
+                    </div>
+                    <div class="schedule-list" id="dayScheduleList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                            <div class="empty-state-text">暂无日程</div>
+                            <div class="empty-state-hint">点击右下角按钮添加新日程</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="add-schedule-btn" onclick="openAddModal()" title="添加日程">
+    <i class="fas fa-plus"></i>
+</button>
+
+<div class="modal fade" id="scheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">添加日程</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm">
+                    <input type="hidden" id="scheduleId">
+                    <div class="mb-3">
+                        <label class="form-label">日程内容</label>
+                        <input type="text" class="form-control" id="scheduleContent" placeholder="请输入日程内容..." required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">日期</label>
+                            <input type="date" class="form-control" id="scheduleDate" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">时间（可选）</label>
+                            <input type="time" class="form-control" id="scheduleTime">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">重要程度</label>
+                        <select class="form-select" id="schedulePriority">
+                            <option value="普通">普通</option>
+                            <option value="紧急">紧急</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="fas fa-check me-1"></i>保存
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let allSchedules = [];
+    let todayDate = '';
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let selectedDate = new Date().toISOString().split('T')[0];
+    let currentFilter = 'all';
+    let currentView = 'calendar';
+    let scheduleModal = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        scheduleModal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+        loadSchedules();
+    });
+    
+    function loadSchedules() {
+        fetch('/schedule/api/schedules')
+            .then(response => response.json())
+            .then(data => {
+                allSchedules = data.schedules;
+                todayDate = data.today;
+                selectedDate = todayDate;
+                renderCalendar();
+                renderDaySchedules();
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('加载失败:', error);
+                showToast('加载失败，请刷新重试', 'error');
+                hideLoading();
+            });
+    }
+    
+    function hideLoading() {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+    
+    function renderCalendar() {
+        const title = `${currentYear}年${currentMonth + 1}月`;
+        document.getElementById('calendarTitle').textContent = title;
+        
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const startDay = firstDay.getDay();
+        const totalDays = lastDay.getDate();
+        
+        const prevLastDay = new Date(currentYear, currentMonth, 0).getDate();
+        
+        let html = '';
+        let dayCount = 1;
+        let nextMonthDay = 1;
+        
+        for (let i = 0; i < 42; i++) {
+            let dayNum, dateStr, isOtherMonth = false;
+            
+            if (i < startDay) {
+                dayNum = prevLastDay - startDay + i + 1;
+                const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                dateStr = formatDateStr(prevYear, prevMonth, dayNum);
+                isOtherMonth = true;
+            } else if (dayCount > totalDays) {
+                dayNum = nextMonthDay++;
+                const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+                const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+                dateStr = formatDateStr(nextYear, nextMonth, dayNum);
+                isOtherMonth = true;
+            } else {
+                dayNum = dayCount++;
+                dateStr = formatDateStr(currentYear, currentMonth, dayNum);
+            }
+            
+            const isToday = dateStr === todayDate;
+            const isSelected = dateStr === selectedDate;
+            const daySchedules = allSchedules.filter(s => s.date === dateStr);
+            const hasUrgent = daySchedules.some(s => s.priority === '紧急' && !s.completed);
+            
+            let classes = 'calendar-day';
+            if (isOtherMonth) classes += ' other-month';
+            if (isToday) classes += ' today';
+            if (isSelected) classes += ' selected';
+            if (daySchedules.length > 0) classes += ' has-schedules';
+            if (hasUrgent) classes += ' has-urgent';
+            
+            html += `<div class="${classes}" onclick="selectDate('${dateStr}')">`;
+            html += `<div class="day-number">${dayNum}</div>`;
+            
+            if (daySchedules.length > 0 && !isOtherMonth) {
+                html += '<div class="day-schedules">';
+                const displaySchedules = daySchedules.slice(0, 3);
+                displaySchedules.forEach(s => {
+                    const priorityClass = s.completed ? 'completed' : (s.priority === '紧急' ? 'urgent' : 'normal');
+                    const displayText = s.content.length > 8 ? s.content.substring(0, 8) + '...' : s.content;
+                    html += `<div class="schedule-dot ${priorityClass}">${escapeHtml(displayText)}</div>`;
+                });
+                if (daySchedules.length > 3) {
+                    html += `<div class="more-schedules">+${daySchedules.length - 3} 更多</div>`;
+                }
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            if (i >= 34 && dayCount > totalDays) break;
+        }
+        
+        document.getElementById('calendarDays').innerHTML = html;
+    }
+    
+    function formatDateStr(year, month, day) {
+        return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+    
+    function selectDate(dateStr) {
+        selectedDate = dateStr;
+        renderCalendar();
+        renderDaySchedules();
+        
+        const date = new Date(dateStr);
+        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        const title = dateStr === todayDate ? '今日日程' : `${dateStr} ${weekdays[date.getDay()]}`;
+        document.getElementById('selectedDateTitle').textContent = title;
+    }
+    
+    function renderDaySchedules() {
+        let schedules = allSchedules.filter(s => s.date === selectedDate);
+        
+        if (currentFilter === 'pending') {
+            schedules = schedules.filter(s => !s.completed);
+        } else if (currentFilter === 'completed') {
+            schedules = schedules.filter(s => s.completed);
+        } else if (currentFilter === 'urgent') {
+            schedules = schedules.filter(s => s.priority === '紧急' && !s.completed);
+        }
+        
+        schedules.sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            if (a.priority !== b.priority) return a.priority === '紧急' ? -1 : 1;
+            return (a.time || '').localeCompare(b.time || '');
+        });
+        
+        const container = document.getElementById('dayScheduleList');
+        
+        if (schedules.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                    <div class="empty-state-text">暂无日程</div>
+                    <div class="empty-state-hint">点击右下角按钮添加新日程</div>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        schedules.forEach(schedule => {
+            const priorityClass = schedule.priority === '紧急' ? 'urgent' : 'normal';
+            const completedClass = schedule.completed ? 'completed' : '';
+            const checkedAttr = schedule.completed ? 'checked' : '';
+            const timeDisplay = schedule.time || '全天';
+            
+            html += `
+                <div class="schedule-item ${priorityClass} ${completedClass}" data-id="${schedule.id}">
+                    <input type="checkbox" class="schedule-checkbox" ${checkedAttr} onchange="toggleComplete(${schedule.id})">
+                    <div class="schedule-content">
+                        <div class="schedule-text">${escapeHtml(schedule.content)}</div>
+                        <div class="schedule-meta">
+                            <span class="schedule-meta-item">
+                                <i class="far fa-clock"></i>${timeDisplay}
+                            </span>
+                            <span class="priority-badge ${priorityClass}">${schedule.priority}</span>
+                        </div>
+                    </div>
+                    <div class="schedule-actions">
+                        <button class="action-btn edit" onclick="openEditModal(${schedule.id})" title="编辑">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteSchedule(${schedule.id})" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    function changeMonth(delta) {
+        currentMonth += delta;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        } else if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar();
+    }
+    
+    function goToToday() {
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth();
+        selectedDate = todayDate;
+        renderCalendar();
+        renderDaySchedules();
+        document.getElementById('selectedDateTitle').textContent = '今日日程';
+    }
+    
+    function switchView(view) {
+        currentView = view;
+        document.getElementById('calendarViewBtn').classList.toggle('active', view === 'calendar');
+        document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+        
+        if (view === 'list') {
+            renderAllSchedulesList();
+        } else {
+            renderDaySchedules();
+        }
+    }
+    
+    function renderAllSchedulesList() {
+        let schedules = [...allSchedules];
+        
+        if (currentFilter === 'pending') {
+            schedules = schedules.filter(s => !s.completed);
+        } else if (currentFilter === 'completed') {
+            schedules = schedules.filter(s => s.completed);
+        } else if (currentFilter === 'urgent') {
+            schedules = schedules.filter(s => s.priority === '紧急' && !s.completed);
+        }
+        
+        schedules.sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            return a.date.localeCompare(b.date);
+        });
+        
+        const container = document.getElementById('dayScheduleList');
+        
+        if (schedules.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                    <div class="empty-state-text">暂无日程</div>
+                    <div class="empty-state-hint">点击右下角按钮添加新日程</div>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        schedules.forEach(schedule => {
+            const priorityClass = schedule.priority === '紧急' ? 'urgent' : 'normal';
+            const completedClass = schedule.completed ? 'completed' : '';
+            const checkedAttr = schedule.completed ? 'checked' : '';
+            const timeDisplay = schedule.time || '全天';
+            const dateDisplay = schedule.date === todayDate ? '今天' : schedule.date;
+            
+            html += `
+                <div class="schedule-item ${priorityClass} ${completedClass}" data-id="${schedule.id}">
+                    <input type="checkbox" class="schedule-checkbox" ${checkedAttr} onchange="toggleComplete(${schedule.id})">
+                    <div class="schedule-content">
+                        <div class="schedule-text">${escapeHtml(schedule.content)}</div>
+                        <div class="schedule-meta">
+                            <span class="schedule-meta-item">
+                                <i class="far fa-calendar"></i>${dateDisplay}
+                            </span>
+                            <span class="schedule-meta-item">
+                                <i class="far fa-clock"></i>${timeDisplay}
+                            </span>
+                            <span class="priority-badge ${priorityClass}">${schedule.priority}</span>
+                        </div>
+                    </div>
+                    <div class="schedule-actions">
+                        <button class="action-btn edit" onclick="openEditModal(${schedule.id})" title="编辑">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteSchedule(${schedule.id})" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    function filterSchedules(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.filter === filter);
+        });
+        
+        if (currentView === 'list') {
+            renderAllSchedulesList();
+        } else {
+            renderDaySchedules();
+        }
+    }
+    
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = '添加日程';
+        document.getElementById('scheduleId').value = '';
+        document.getElementById('scheduleContent').value = '';
+        document.getElementById('scheduleDate').value = selectedDate;
+        document.getElementById('scheduleTime').value = '';
+        document.getElementById('schedulePriority').value = '普通';
+        scheduleModal.show();
+    }
+    
+    function openEditModal(id) {
+        fetch(`/schedule/api/schedules/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const s = data.schedule;
+                    document.getElementById('modalTitle').textContent = '编辑日程';
+                    document.getElementById('scheduleId').value = s.id;
+                    document.getElementById('scheduleContent').value = s.content;
+                    document.getElementById('scheduleDate').value = s.date;
+                    document.getElementById('scheduleTime').value = s.time || '';
+                    document.getElementById('schedulePriority').value = s.priority;
+                    scheduleModal.show();
+                }
+            });
+    }
+    
+    document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const id = document.getElementById('scheduleId').value;
+        const content = document.getElementById('scheduleContent').value.trim();
+        const date = document.getElementById('scheduleDate').value;
+        const time = document.getElementById('scheduleTime').value;
+        const priority = document.getElementById('schedulePriority').value;
+        
+        if (!content || !date) {
+            showToast('内容和日期不能为空', 'error');
+            return;
+        }
+        
+        const url = id ? `/schedule/api/schedules/${id}` : '/schedule/api/schedules';
+        const method = id ? 'PUT' : 'POST';
+        
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, date, time, priority })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(id ? '更新成功' : '添加成功', 'success');
+                scheduleModal.hide();
+                loadSchedules();
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(() => showToast('操作失败，请重试', 'error'));
+    });
+    
+    function toggleComplete(id) {
+        fetch(`/schedule/api/schedules/${id}/complete`, { method: 'PUT' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadSchedules();
+                    showToast(data.completed ? '已完成' : '已恢复待办', 'success');
+                }
+            });
+    }
+    
+    function deleteSchedule(id) {
+        if (!confirm('确定要删除这条日程吗？')) return;
+        
+        fetch(`/schedule/api/schedules/${id}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('删除成功', 'success');
+                    loadSchedules();
+                }
+            });
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type} show`;
+        toast.innerHTML = `
+            <div class="toast-body">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${message}
+            </div>
+        `;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+</script>
+{% endblock %}

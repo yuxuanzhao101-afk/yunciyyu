@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}添加记录 - yunicyyu{% endblock %}
+
+{% block extra_css %}
+<style>
+    .add-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 0;
+    }
+    
+    .add-card {
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 35px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .type-selector {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .type-btn {
+        flex: 1;
+        padding: 15px;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 15px;
+        background: transparent;
+        color: rgba(255,255,255,0.6);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .type-btn:hover {
+        border-color: rgba(255,255,255,0.4);
+    }
+    
+    .type-btn.active.expense {
+        border-color: #f5576c;
+        background: rgba(245, 87, 108, 0.2);
+        color: #f5576c;
+    }
+    
+    .type-btn.active.income {
+        border-color: #38ef7d;
+        background: rgba(56, 239, 125, 0.2);
+        color: #38ef7d;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-label {
+        display: block;
+        color: rgba(255,255,255,0.7);
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 15px 20px;
+        font-size: 1rem;
+        color: #fff;
+        transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: rgba(255,255,255,0.15);
+    }
+    
+    .form-input::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    .category-btn {
+        padding: 12px;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        background: transparent;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+    
+    .category-btn:hover {
+        border-color: rgba(255,255,255,0.4);
+    }
+    
+    .category-btn.active {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.2);
+        color: #fff;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    
+    .amount-input-wrapper {
+        position: relative;
+    }
+    
+    .amount-prefix {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,0.5);
+        font-size: 1.2rem;
+    }
+    
+    .amount-input {
+        padding-left: 45px;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="add-container">
+        <div class="add-card">
+            <form method="POST" action="{{ url_for('finance.add') }}">
+                <div class="type-selector">
+                    <button type="button" class="type-btn expense active" data-type="expense">
+                        <i class="fas fa-arrow-down me-2"></i>支出
+                    </button>
+                    <button type="button" class="type-btn income" data-type="income">
+                        <i class="fas fa-arrow-up me-2"></i>收入
+                    </button>
+                </div>
+                
+                <input type="hidden" name="type" id="typeInput" value="expense">
+                
+                <div class="form-group">
+                    <label class="form-label">金额</label>
+                    <div class="amount-input-wrapper">
+                        <span class="amount-prefix">¥</span>
+                        <input type="number" step="0.01" min="0" class="form-input amount-input" 
+                               name="amount" placeholder="0.00" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">分类</label>
+                    <div class="category-grid" id="categoryGrid">
+                        {% for cat in categories %}
+                        {% if cat.type == 'expense' %}
+                        <button type="button" class="category-btn" data-category="{{ cat.name }}" data-type="{{ cat.type }}">
+                            {{ cat.name }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="category" id="categoryInput" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">日期</label>
+                    <input type="date" class="form-input" name="date" value="{{ today }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">备注（可选）</label>
+                    <input type="text" class="form-input" name="note" placeholder="添加备注...">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">场景/地点（可选）</label>
+                    <input type="text" class="form-input" name="scene" id="sceneInput" 
+                           placeholder="如：旅行、杭州、公司..." list="sceneList" autocomplete="off">
+                    <datalist id="sceneList">
+                        {% for scene in scenes %}
+                        <option value="{{ scene }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-check me-2"></i>保存记录
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const typeBtns = document.querySelectorAll('.type-btn');
+    const typeInput = document.getElementById('typeInput');
+    const categoryGrid = document.getElementById('categoryGrid');
+    const categoryInput = document.getElementById('categoryInput');
+    
+    const categories = {{ categories | tojson }};
+    
+    typeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            typeBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const type = this.dataset.type;
+            typeInput.value = type;
+            
+            categoryGrid.innerHTML = '';
+            categories.filter(c => c.type === type).forEach(cat => {
+                const catBtn = document.createElement('button');
+                catBtn.type = 'button';
+                catBtn.className = 'category-btn';
+                catBtn.dataset.category = cat.name;
+                catBtn.dataset.type = cat.type;
+                catBtn.textContent = cat.name;
+                categoryGrid.appendChild(catBtn);
+            });
+            
+            bindCategoryBtns();
+        });
+    });
+    
+    function bindCategoryBtns() {
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                categoryInput.value = this.dataset.category;
+            });
+        });
+    }
+    
+    bindCategoryBtns();
+</script>
+{% endblock %}

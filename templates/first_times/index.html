@@ -1,0 +1,853 @@
+{% extends "base.html" %}
+
+{% block title %}人生记录 - yunicyyu{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        text-align: center;
+        padding: 20px 0;
+        margin-bottom: 20px;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 5px;
+    }
+    
+    .page-subtitle {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .filter-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-select {
+        background: rgba(30, 30, 50, 0.95);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: #fff;
+        font-size: 0.85rem;
+        cursor: pointer;
+        min-width: 100px;
+    }
+    
+    .filter-select:focus {
+        outline: none;
+        border-color: rgba(102, 126, 234, 0.8);
+        background: rgba(30, 30, 50, 1);
+    }
+    
+    .filter-select option {
+        background: #1e1e32;
+        color: #fff;
+        padding: 8px 12px;
+    }
+    
+    .filter-select option:checked {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    
+    .search-input {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        padding: 8px 14px;
+        color: #fff;
+        font-size: 0.85rem;
+        width: 180px;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .search-input::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, rgba(102, 126, 234, 0.5), rgba(118, 75, 162, 0.3));
+    }
+    
+    .year-group {
+        margin-bottom: 30px;
+    }
+    
+    .year-header {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.7);
+        margin-bottom: 15px;
+        padding-left: 15px;
+        position: relative;
+    }
+    
+    .year-header::before {
+        content: '';
+        position: absolute;
+        left: -26px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        border: 2px solid #1a1a2e;
+    }
+    
+    .record-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 12px;
+        margin-left: 15px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .record-card::before {
+        content: '';
+        position: absolute;
+        left: -19px;
+        top: 20px;
+        width: 8px;
+        height: 8px;
+        background: rgba(102, 126, 234, 0.6);
+        border-radius: 50%;
+    }
+    
+    .record-card:hover {
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(255,255,255,0.12);
+    }
+    
+    .record-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .record-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9);
+        flex: 1;
+    }
+    
+    .record-date {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.4);
+        white-space: nowrap;
+    }
+    
+    .record-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 10px;
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .record-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .record-meta-item i {
+        font-size: 0.8rem;
+        opacity: 0.6;
+    }
+    
+    .record-feeling {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+    
+    .record-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .record-tag {
+        background: rgba(102, 126, 234, 0.15);
+        color: rgba(102, 126, 234, 0.9);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+    }
+    
+    .record-image {
+        margin-top: 12px;
+        border-radius: 8px;
+        overflow: hidden;
+        max-width: 300px;
+    }
+    
+    .record-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    .record-actions {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 6px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .record-card:hover .record-actions {
+        opacity: 1;
+    }
+    
+    .action-btn {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: rgba(255,255,255,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+    }
+    
+    .action-btn:hover {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+    }
+    
+    .action-btn.delete:hover {
+        background: rgba(245, 87, 108, 0.3);
+        color: #f5576c;
+    }
+    
+    .add-btn {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        font-size: 1.4rem;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+        z-index: 100;
+    }
+    
+    .add-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+    
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .modal-overlay.show {
+        display: flex;
+    }
+    
+    .modal-content {
+        background: #1a1a2e;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .modal-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.5);
+        font-size: 1.3rem;
+        cursor: pointer;
+        padding: 5px;
+    }
+    
+    .modal-close:hover {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-label {
+        display: block;
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.7);
+        margin-bottom: 6px;
+    }
+    
+    .form-label .required {
+        color: #f5576c;
+        margin-left: 2px;
+    }
+    
+    .form-input {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgba(30, 30, 50, 0.95);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: #fff;
+        font-size: 0.95rem;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: rgba(102, 126, 234, 0.8);
+        background: rgba(30, 30, 50, 1);
+    }
+    
+    .form-input::placeholder {
+        color: rgba(255,255,255,0.35);
+    }
+    
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .form-hint {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.4);
+        margin-top: 4px;
+    }
+    
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-cancel {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.15);
+        color: rgba(255,255,255,0.7);
+    }
+    
+    .btn-cancel:hover {
+        background: rgba(255,255,255,0.15);
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .total-count {
+        position: fixed;
+        bottom: 15px;
+        left: 20px;
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.3);
+    }
+    
+    .image-upload-area {
+        border: 2px dashed rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .image-upload-area:hover {
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .image-upload-area i {
+        font-size: 2rem;
+        color: rgba(255,255,255,0.3);
+        margin-bottom: 8px;
+    }
+    
+    .image-upload-area p {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.4);
+        margin: 0;
+    }
+    
+    .image-preview {
+        margin-top: 10px;
+        border-radius: 8px;
+        overflow: hidden;
+        max-width: 200px;
+        position: relative;
+    }
+    
+    .image-preview img {
+        width: 100%;
+        display: block;
+    }
+    
+    .image-preview .remove-image {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(0,0,0,0.6);
+        border: none;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+        .filter-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .filter-select, .search-input {
+            width: 100%;
+        }
+        
+        .timeline {
+            padding-left: 20px;
+        }
+        
+        .record-card {
+            margin-left: 10px;
+        }
+        
+        .record-actions {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">人生记录</h1>
+        <p class="page-subtitle">记录每一个珍贵的第一次</p>
+    </div>
+    
+    <div class="filter-section">
+        <select class="filter-select" id="yearFilter">
+            <option value="">全部年份</option>
+        </select>
+        <select class="filter-select" id="tagFilter">
+            <option value="">全部标签</option>
+        </select>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索关键词...">
+    </div>
+    
+    <div class="timeline" id="timeline">
+        <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <p>暂无记录</p>
+        </div>
+    </div>
+</div>
+
+<button class="add-btn" onclick="openAddModal()" title="添加记录">
+    <i class="fas fa-plus"></i>
+</button>
+
+<div class="total-count" id="totalCount">已记录 0 个第一次</div>
+
+<div class="modal-overlay" id="recordModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">添加记录</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="recordId">
+            <div class="form-group">
+                <label class="form-label">事件名称 <span class="required">*</span></label>
+                <input type="text" class="form-input" id="titleInput" placeholder="例如：第一次旅行">
+            </div>
+            <div class="form-group">
+                <label class="form-label">发生日期 <span class="required">*</span></label>
+                <input type="date" class="form-input" id="dateInput">
+            </div>
+            <div class="form-group">
+                <label class="form-label">地点</label>
+                <input type="text" class="form-input" id="locationInput" placeholder="可选，记录发生的地点">
+            </div>
+            <div class="form-group">
+                <label class="form-label">心情感受 <span class="required">*</span></label>
+                <textarea class="form-input form-textarea" id="feelingInput" placeholder="记录当时的心情和感受..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">标签</label>
+                <input type="text" class="form-input" id="tagsInput" placeholder="可选，多个标签用逗号分隔">
+                <p class="form-hint">例如：旅行, 成长, 突破</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+            <button class="btn btn-save" onclick="saveRecord()">保存</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let records = [];
+    let currentRecordId = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        loadRecords();
+        loadYears();
+        loadTags();
+        
+        document.getElementById('yearFilter').addEventListener('change', filterRecords);
+        document.getElementById('tagFilter').addEventListener('change', filterRecords);
+        document.getElementById('searchInput').addEventListener('input', debounce(filterRecords, 300));
+    });
+    
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+    
+    function loadRecords() {
+        const year = document.getElementById('yearFilter').value;
+        const tag = document.getElementById('tagFilter').value;
+        const keyword = document.getElementById('searchInput').value;
+        
+        let url = '/first-times/api/list?';
+        if (year) url += `year=${year}&`;
+        if (tag) url += `tag=${tag}&`;
+        if (keyword) url += `keyword=${encodeURIComponent(keyword)}`;
+        
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    records = data.records;
+                    renderTimeline();
+                    updateTotalCount();
+                }
+            });
+    }
+    
+    function loadYears() {
+        fetch('/first-times/api/years')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const select = document.getElementById('yearFilter');
+                    data.years.forEach(year => {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year + '年';
+                        select.appendChild(option);
+                    });
+                }
+            });
+    }
+    
+    function loadTags() {
+        fetch('/first-times/api/tags')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const select = document.getElementById('tagFilter');
+                    data.tags.forEach(tag => {
+                        const option = document.createElement('option');
+                        option.value = tag;
+                        option.textContent = tag;
+                        select.appendChild(option);
+                    });
+                }
+            });
+    }
+    
+    function filterRecords() {
+        loadRecords();
+    }
+    
+    function renderTimeline() {
+        const container = document.getElementById('timeline');
+        
+        if (records.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-book-open"></i>
+                    <p>暂无记录</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const grouped = {};
+        records.forEach(record => {
+            const year = record.date.substring(0, 4);
+            if (!grouped[year]) {
+                grouped[year] = [];
+            }
+            grouped[year].push(record);
+        });
+        
+        let html = '';
+        Object.keys(grouped).sort((a, b) => b - a).forEach(year => {
+            html += `<div class="year-group">`;
+            html += `<div class="year-header">${year}年</div>`;
+            
+            grouped[year].forEach(record => {
+                html += renderRecordCard(record);
+            });
+            
+            html += `</div>`;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    function renderRecordCard(record) {
+        const tagsHtml = record.tags ? record.tags.split(',').filter(t => t.trim()).map(tag => 
+            `<span class="record-tag">${tag.trim()}</span>`
+        ).join('') : '';
+        
+        const imageHtml = record.image_path ? 
+            `<div class="record-image"><img src="/static/${record.image_path}" alt="${record.title}"></div>` : '';
+        
+        const locationHtml = record.location ? 
+            `<span class="record-meta-item"><i class="fas fa-map-marker-alt"></i>${record.location}</span>` : '';
+        
+        return `
+            <div class="record-card" data-id="${record.id}">
+                <div class="record-actions">
+                    <button class="action-btn" onclick="openEditModal(${record.id})" title="编辑">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteRecord(${record.id})" title="删除">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="record-header">
+                    <div class="record-title">${escapeHtml(record.title)}</div>
+                    <div class="record-date">${formatDate(record.date)}</div>
+                </div>
+                <div class="record-meta">
+                    ${locationHtml}
+                </div>
+                <div class="record-feeling">${escapeHtml(record.feeling)}</div>
+                ${tagsHtml ? `<div class="record-tags">${tagsHtml}</div>` : ''}
+                ${imageHtml}
+            </div>
+        `;
+    }
+    
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        return `${month}月${day}日`;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function updateTotalCount() {
+        fetch('/first-times/api/list')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('totalCount').textContent = `已记录 ${data.records.length} 个第一次`;
+                }
+            });
+    }
+    
+    function openAddModal() {
+        currentRecordId = null;
+        document.getElementById('modalTitle').textContent = '添加记录';
+        document.getElementById('recordId').value = '';
+        document.getElementById('titleInput').value = '';
+        document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+        document.getElementById('locationInput').value = '';
+        document.getElementById('feelingInput').value = '';
+        document.getElementById('tagsInput').value = '';
+        document.getElementById('recordModal').classList.add('show');
+    }
+    
+    function openEditModal(id) {
+        fetch(`/first-times/api/record/${id}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const record = data.record;
+                    currentRecordId = id;
+                    document.getElementById('modalTitle').textContent = '编辑记录';
+                    document.getElementById('recordId').value = id;
+                    document.getElementById('titleInput').value = record.title;
+                    document.getElementById('dateInput').value = record.date;
+                    document.getElementById('locationInput').value = record.location || '';
+                    document.getElementById('feelingInput').value = record.feeling || '';
+                    document.getElementById('tagsInput').value = record.tags || '';
+                    document.getElementById('recordModal').classList.add('show');
+                }
+            });
+    }
+    
+    function closeModal() {
+        document.getElementById('recordModal').classList.remove('show');
+    }
+    
+    function saveRecord() {
+        const id = document.getElementById('recordId').value;
+        const title = document.getElementById('titleInput').value.trim();
+        const date = document.getElementById('dateInput').value;
+        const location = document.getElementById('locationInput').value.trim();
+        const feeling = document.getElementById('feelingInput').value.trim();
+        const tags = document.getElementById('tagsInput').value.trim();
+        
+        if (!title || !date || !feeling) {
+            alert('请填写必填项：事件名称、日期、心情感受');
+            return;
+        }
+        
+        const url = id ? `/first-times/api/edit/${id}` : '/first-times/api/add';
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, date, location, feeling, tags})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                closeModal();
+                loadRecords();
+                loadYears();
+                loadTags();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+    
+    function deleteRecord(id) {
+        if (!confirm('确定要删除这条记录吗？')) return;
+        
+        fetch(`/first-times/api/delete/${id}`, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadRecords();
+                }
+            });
+    }
+    
+    document.getElementById('recordModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+</script>
+{% endblock %}

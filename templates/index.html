@@ -1,0 +1,877 @@
+{% extends "base.html" %}
+
+{% block title %}yunicyyu - 个人主页{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        text-align: center;
+        padding: 60px 0 40px;
+    }
+    
+    .avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        font-size: 4rem;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+        animation: float 3s ease-in-out infinite;
+        overflow: hidden;
+        border: 3px solid rgba(255,255,255,0.2);
+    }
+    
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #fff 0%, #a8a8a8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 30px;
+    }
+    
+    .hero-tags {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 40px;
+    }
+    
+    .hero-tag {
+        background: rgba(255,255,255,0.1);
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.8);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .today-section {
+        padding: 30px 0;
+    }
+    
+    .today-card {
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+    }
+    
+    .today-card:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+        text-decoration: none;
+    }
+    
+    .today-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    
+    .today-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #fff;
+    }
+    
+    .today-title i {
+        color: #667eea;
+    }
+    
+    .today-count {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        color: white;
+    }
+    
+    .today-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .today-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 15px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        border-left: 3px solid #667eea;
+    }
+    
+    .today-item.urgent {
+        border-left-color: #f5576c;
+    }
+    
+    .today-item-time {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.5);
+        min-width: 60px;
+    }
+    
+    .today-item-content {
+        flex: 1;
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .today-item-badge {
+        font-size: 0.75rem;
+        padding: 2px 10px;
+        border-radius: 10px;
+        background: rgba(245, 87, 108, 0.2);
+        color: #f5576c;
+    }
+    
+    .today-empty {
+        text-align: center;
+        padding: 30px;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .today-empty i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .view-all-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        padding: 10px 25px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 25px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .view-all-btn:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .modules-section {
+        padding: 40px 0;
+    }
+    
+    .section-title {
+        text-align: center;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 40px;
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .module-card {
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 35px 30px;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+        height: 100%;
+    }
+    
+    .module-card:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        text-decoration: none;
+    }
+    
+    .module-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    
+    .module-icon.schedule {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .module-icon.notes {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    
+    .module-icon.goals {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .module-icon.blog {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .module-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 10px;
+    }
+    
+    .module-desc {
+        color: rgba(255,255,255,0.6);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    .module-status {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    .status-dot.active {
+        background: #38ef7d;
+        box-shadow: 0 0 10px #38ef7d;
+    }
+    
+    .status-dot.coming {
+        background: #ffc107;
+    }
+    
+    .status-text {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .quote-section {
+        padding: 60px 0;
+        text-align: center;
+    }
+    
+    .quote-box {
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 40px;
+        border: 1px solid rgba(255,255,255,0.1);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .quote-text {
+        font-size: 1.3rem;
+        color: rgba(255,255,255,0.8);
+        font-style: italic;
+        line-height: 1.8;
+        margin-bottom: 15px;
+    }
+    
+    .quote-author {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.95rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .avatar {
+            width: 120px;
+            height: 120px;
+            font-size: 3rem;
+        }
+        
+        .module-card {
+            margin-bottom: 20px;
+        }
+    }
+    
+    .backup-section {
+        margin: 40px 0;
+    }
+    
+    .backup-card {
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .backup-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .backup-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: white;
+    }
+    
+    .backup-text h4 {
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 5px;
+        font-size: 1rem;
+    }
+    
+    .backup-text p {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .backup-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .backup-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 20px;
+        color: white;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .backup-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .backup-btn.secondary {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .backup-btn.secondary:hover {
+        background: rgba(255,255,255,0.15);
+        box-shadow: none;
+    }
+    
+    .backup-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .backup-modal.show {
+        display: flex;
+    }
+    
+    .backup-modal-content {
+        background: #1a1a2e;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .backup-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .backup-modal-header h3 {
+        color: rgba(255,255,255,0.9);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    
+    .close-btn {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.5);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+    
+    .close-btn:hover {
+        color: white;
+    }
+    
+    .backup-list {
+        padding: 15px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .backup-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .backup-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .backup-item-info {
+        flex: 1;
+    }
+    
+    .backup-item-name {
+        color: rgba(255,255,255,0.9);
+        font-size: 0.85rem;
+        margin-bottom: 3px;
+    }
+    
+    .backup-item-meta {
+        color: rgba(255,255,255,0.4);
+        font-size: 0.75rem;
+    }
+    
+    .backup-item-actions {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .backup-item-btn {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 6px;
+        padding: 6px 10px;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .backup-item-btn:hover {
+        background: rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+    
+    .backup-item-btn.restore:hover {
+        background: rgba(56, 239, 125, 0.3);
+    }
+    
+    .backup-item-btn.delete:hover {
+        background: rgba(245, 87, 108, 0.3);
+    }
+    
+    .loading {
+        text-align: center;
+        color: rgba(255,255,255,0.5);
+        padding: 30px;
+    }
+    
+    .empty-backup {
+        text-align: center;
+        color: rgba(255,255,255,0.5);
+        padding: 30px;
+    }
+    
+    @media (max-width: 576px) {
+        .backup-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .backup-info {
+            flex-direction: column;
+        }
+        
+        .backup-actions {
+            width: 100%;
+        }
+        
+        .backup-btn {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="hero-section">
+        <div class="avatar">
+            <img src="{{ url_for('static', filename='images/avatar.jpg') }}" alt="avatar">
+        </div>
+        <h1 class="hero-title">Hi, I'm yunicyyu 😺</h1>
+        <p class="hero-subtitle">在泥沙俱下的互联网，只要有一些可以带来思考的的知识都是有意义的</p>
+        <div class="hero-tags">
+            <span class="hero-tag">若无闲事挂心头</span>
+            <span class="hero-tag">便是人间好时节</span>
+        </div>
+    </div>
+    
+    <div class="today-section">
+        <a href="/schedule" class="today-card">
+            <div class="today-header">
+                <div class="today-title">
+                    <i class="fas fa-calendar-day"></i>
+                    <span>今日待办</span>
+                </div>
+                <div class="today-count">{{ stats.today_pending }} 项</div>
+            </div>
+            {% if stats.today_items and stats.today_items|length > 0 %}
+            <div class="today-list">
+                {% for item in stats.today_items[:5] %}
+                <div class="today-item {% if item.priority == '紧急' %}urgent{% endif %}">
+                    <span class="today-item-time">{{ item.time or '全天' }}</span>
+                    <span class="today-item-content">{{ item.content }}</span>
+                    {% if item.priority == '紧急' %}
+                    <span class="today-item-badge">紧急</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if stats.today_items|length > 5 %}
+                <p style="color: rgba(255,255,255,0.5); text-align: center; margin-top: 10px;">
+                    还有 {{ stats.today_items|length - 5 }} 项待办...
+                </p>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="today-empty">
+                <i class="fas fa-check-circle"></i>
+                <p>今天没有待办事项，享受美好的一天吧！</p>
+            </div>
+            {% endif %}
+            <div style="text-align: center;">
+                <span class="view-all-btn">
+                    查看全部日程 <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
+        </a>
+    </div>
+    
+    <div class="today-section">
+        <a href="/finance" class="today-card" style="border-left: 3px solid #f5576c;">
+            <div class="today-header">
+                <div class="today-title">
+                    <i class="fas fa-wallet" style="color: #f5576c;"></i>
+                    <span>今日支出</span>
+                </div>
+                <div class="today-count" style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);">¥{{ "%.2f"|format(finance_stats.today_expense) }}</div>
+            </div>
+            {% if daily_summary and finance_stats.today_expense > 0 %}
+            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%); border-radius: 10px; padding: 12px 15px; margin-bottom: 15px;">
+                <div style="color: rgba(255,255,255,0.85); font-size: 0.95rem;">
+                    <i class="fas fa-chart-line" style="color: #667eea; margin-right: 6px;"></i>{{ daily_summary }}
+                </div>
+            </div>
+            {% endif %}
+            {% if finance_stats.today_transactions and finance_stats.today_transactions|length > 0 %}
+            <div class="today-list">
+                {% for t in finance_stats.today_transactions[:3] %}
+                <div class="today-item" style="border-left-color: {{ '#f5576c' if t.type == 'expense' else '#38ef7d' }};">
+                    <span class="today-item-time">{{ t.category }}</span>
+                    <span class="today-item-content">{{ t.note or '无备注' }}</span>
+                    <span style="color: {{ '#f5576c' if t.type == 'expense' else '#38ef7d' }}; font-weight: 600;">
+                        {{ '-' if t.type == 'expense' else '+' }}¥{{ "%.0f"|format(t.amount) }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="today-empty">
+                <i class="fas fa-coins"></i>
+                <p>今天还没有支出记录</p>
+            </div>
+            {% endif %}
+            <div style="text-align: center;">
+                <span class="view-all-btn" style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);">
+                    查看记账 <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
+        </a>
+    </div>
+    
+    <div class="modules-section">
+        <h2 class="section-title"><i class="fas fa-th-large me-2"></i>功能模块</h2>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <a href="/schedule" class="module-card">
+                    <div class="module-icon schedule">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3 class="module-title">日程管理</h3>
+                    <p class="module-desc">高效管理每日日程，支持日历视图、优先级标记、完成状态追踪</p>
+                    <div class="module-status">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">已上线</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <a href="/finance" class="module-card">
+                    <div class="module-icon notes">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h3 class="module-title">记账系统</h3>
+                    <p class="module-desc">快速记录收支，智能分类，月度统计一目了然</p>
+                    <div class="module-status">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">已上线</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <a href="#" class="module-card">
+                    <div class="module-icon goals">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3 class="module-title">目标追踪</h3>
+                    <p class="module-desc">设定年度目标，追踪进度，养成好习惯</p>
+                    <div class="module-status">
+                        <span class="status-dot coming"></span>
+                        <span class="status-text">开发中</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <a href="#" class="module-card">
+                    <div class="module-icon blog">
+                        <i class="fas fa-blog"></i>
+                    </div>
+                    <h3 class="module-title">博客文章</h3>
+                    <p class="module-desc">分享技术文章、生活随笔，记录成长足迹</p>
+                    <div class="module-status">
+                        <span class="status-dot coming"></span>
+                        <span class="status-text">开发中</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="backup-section">
+        <h2 class="section-title"><i class="fas fa-database me-2"></i>数据管理</h2>
+        <div class="backup-card">
+            <div class="backup-info">
+                <div class="backup-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="backup-text">
+                    <h4>数据库备份</h4>
+                    <p>每次启动自动备份，保留最近 7 个备份文件</p>
+                </div>
+            </div>
+            <div class="backup-actions">
+                <button class="backup-btn" onclick="createBackup()">
+                    <i class="fas fa-download"></i> 立即备份
+                </button>
+                <button class="backup-btn secondary" onclick="showBackupList()">
+                    <i class="fas fa-history"></i> 查看备份
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="backup-modal" id="backupModal">
+        <div class="backup-modal-content">
+            <div class="backup-modal-header">
+                <h3><i class="fas fa-history me-2"></i>备份历史</h3>
+                <button class="close-btn" onclick="closeBackupModal()">&times;</button>
+            </div>
+            <div class="backup-list" id="backupList">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="quote-section">
+        <div class="quote-box">
+            <p class="quote-text">"别着急去否认一些东西，你可能只是今天心情不好。"</p>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const backupModal = document.getElementById('backupModal');
+    const backupList = document.getElementById('backupList');
+    const toast = document.getElementById('toast');
+    
+    function showToast(message, type = 'success') {
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            background: ${type === 'success' 
+                ? 'linear-gradient(135deg, #38ef7d 0%, #11998e 100%)' 
+                : 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)'};
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1001;
+        `;
+        setTimeout(() => {
+            toast.style.transform = 'translateX(-50%) translateY(100px)';
+        }, 2000);
+    }
+    
+    function createBackup() {
+        fetch('/api/backup', {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('备份成功！');
+            } else {
+                showToast(data.message || '备份失败', 'error');
+            }
+        });
+    }
+    
+    function showBackupList() {
+        backupModal.classList.add('show');
+        backupList.innerHTML = '<div class="loading">加载中...</div>';
+        
+        fetch('/api/backups')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.backups.length > 0) {
+                backupList.innerHTML = data.backups.map(backup => `
+                    <div class="backup-item">
+                        <div class="backup-item-info">
+                            <div class="backup-item-name">${backup.filename}</div>
+                            <div class="backup-item-meta">
+                                ${(backup.size / 1024).toFixed(1)} KB · ${backup.created_at}
+                            </div>
+                        </div>
+                        <div class="backup-item-actions">
+                            <button class="backup-item-btn" onclick="downloadBackup('${backup.filename}')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="backup-item-btn restore" onclick="restoreBackup('${backup.filename}')">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                            <button class="backup-item-btn delete" onclick="deleteBackup('${backup.filename}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                backupList.innerHTML = '<div class="empty-backup">暂无备份记录</div>';
+            }
+        });
+    }
+    
+    function closeBackupModal() {
+        backupModal.classList.remove('show');
+    }
+    
+    function downloadBackup(filename) {
+        window.location.href = `/api/backup/download/${filename}`;
+    }
+    
+    function restoreBackup(filename) {
+        if (!confirm(`确定要从 ${filename} 恢复数据吗？\n当前数据将被覆盖，恢复后需要重启应用。`)) return;
+        
+        fetch(`/api/restore/${filename}`, {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('恢复成功！请重启应用');
+                closeBackupModal();
+            } else {
+                showToast(data.message || '恢复失败', 'error');
+            }
+        });
+    }
+    
+    function deleteBackup(filename) {
+        if (!confirm(`确定删除 ${filename}？`)) return;
+        
+        fetch(`/api/backup/delete/${filename}`, {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('删除成功');
+                showBackupList();
+            } else {
+                showToast('删除失败', 'error');
+            }
+        });
+    }
+    
+    backupModal.addEventListener('click', function(e) {
+        if (e.target === backupModal) closeBackupModal();
+    });
+</script>
+{% endblock %}

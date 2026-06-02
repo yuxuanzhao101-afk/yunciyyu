@@ -1,0 +1,1255 @@
+{% extends "base.html" %}
+
+{% block title %}记账日历 - yunicyyu{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header-section {
+        text-align: center;
+        padding: 30px 0 20px;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .page-subtitle {
+        color: rgba(255,255,255,0.6);
+    }
+    
+    .card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .calendar-nav-btn {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .calendar-nav-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+    
+    .calendar-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        min-width: 180px;
+        text-align: center;
+    }
+    
+    .today-btn {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.5);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .today-btn:hover {
+        background: white;
+        color: #667eea;
+    }
+    
+    .quick-add-input {
+        background: rgba(30, 30, 50, 0.95);
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 14px 20px;
+        font-size: 1rem;
+        color: #fff;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-add-input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: rgba(30, 30, 50, 1);
+    }
+    
+    .quick-add-input option {
+        background: #1e1e32;
+        color: #fff;
+        padding: 12px 16px;
+        font-size: 1rem;
+    }
+    
+    .quick-add-input option:checked {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    
+    .view-toggle {
+        display: flex;
+        background: rgba(30, 30, 50, 0.9);
+        border-radius: 30px;
+        padding: 4px;
+    }
+    
+    .view-toggle-btn {
+        background: transparent;
+        border: none;
+        color: rgba(255,255,255,0.85);
+        padding: 8px 18px;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+    
+    .view-toggle-btn.active {
+        background: white;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .monthly-summary-bar {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 15px 20px;
+        background: rgba(255,255,255,0.03);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .monthly-stat-item {
+        text-align: center;
+    }
+    
+    .monthly-stat-label {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .monthly-stat-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    
+    .monthly-stat-value.expense { color: #f5576c; }
+    .monthly-stat-value.income { color: #38ef7d; }
+    .monthly-stat-value.balance { color: #667eea; }
+    
+    .calendar-body {
+        padding: 0;
+    }
+    
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .weekday {
+        padding: 15px 5px;
+        text-align: center;
+        font-weight: 600;
+        color: rgba(255,255,255,0.6);
+        font-size: 0.9rem;
+    }
+    
+    .weekday.weekend {
+        color: #f5576c;
+    }
+    
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .calendar-day {
+        min-height: 90px;
+        padding: 8px;
+        border: 1px solid rgba(255,255,255,0.05);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .calendar-day:hover {
+        background: rgba(255,255,255,0.05);
+    }
+    
+    .calendar-day.other-month {
+        opacity: 0.3;
+    }
+    
+    .calendar-day.today {
+        background: rgba(102, 126, 234, 0.2);
+        border: 2px solid #667eea;
+    }
+    
+    .calendar-day.selected {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .day-number {
+        font-size: 1rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 5px;
+    }
+    
+    .calendar-day.weekend-day .day-number {
+        color: #f5576c;
+    }
+    
+    .calendar-day.selected .day-number {
+        color: white;
+    }
+    
+    .day-finances {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .finance-amount {
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .finance-amount.expense {
+        color: #f5576c;
+    }
+    
+    .finance-amount.income {
+        color: #38ef7d;
+    }
+    
+    .calendar-day.selected .finance-amount {
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .large-expense-dot {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 8px;
+        height: 8px;
+        background: #f5576c;
+        border-radius: 50%;
+    }
+    
+    .day-stats-header {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 20px;
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .day-stat-item {
+        text-align: center;
+    }
+    
+    .day-stat-label {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .day-stat-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+    
+    .day-stat-value.expense { color: #f5576c; }
+    .day-stat-value.income { color: #38ef7d; }
+    .day-stat-value.balance { color: #667eea; }
+    
+    .day-detail-body {
+        padding: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .transaction-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .transaction-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        transition: all 0.3s ease;
+        gap: 12px;
+    }
+    
+    .transaction-item:hover {
+        background: rgba(255,255,255,0.08);
+    }
+    
+    .transaction-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+    
+    .transaction-icon.expense {
+        background: rgba(245, 87, 108, 0.2);
+        color: #f5576c;
+    }
+    
+    .transaction-icon.income {
+        background: rgba(56, 239, 125, 0.2);
+        color: #38ef7d;
+    }
+    
+    .transaction-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .transaction-category {
+        color: rgba(255,255,255,0.9);
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .transaction-note {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .transaction-amount {
+        font-size: 0.95rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .transaction-amount.expense { color: #f5576c; }
+    .transaction-amount.income { color: #38ef7d; }
+    
+    .transaction-actions {
+        display: flex;
+        gap: 6px;
+        margin-left: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .transaction-item:hover .transaction-actions {
+        opacity: 1;
+    }
+    
+    .trans-action-btn {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: rgba(255,255,255,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+    }
+    
+    .trans-action-btn:hover {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+    }
+    
+    .trans-action-btn.delete:hover {
+        background: rgba(245, 87, 108, 0.3);
+        color: #f5576c;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .empty-state-text {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+    
+    .quick-add-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+    }
+    
+    .quick-add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .quick-add-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .quick-add-modal.show {
+        display: flex;
+    }
+    
+    .quick-add-content {
+        background: #1a1a2e;
+        border-radius: 16px;
+        padding: 25px;
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid rgba(255,255,255,0.1);
+        position: relative;
+        z-index: 2001;
+    }
+    
+    .quick-add-title {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .quick-add-input {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 1rem;
+        color: #fff;
+        margin-bottom: 15px;
+    }
+    
+    .quick-add-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .quick-add-input::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .quick-add-input.select-styled {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        padding-right: 40px;
+    }
+    
+    .quick-add-input.select-styled option {
+        background: #2a2a3f;
+        color: #ffffff;
+        padding: 12px 16px;
+        font-size: 1rem;
+        min-height: 40px;
+        line-height: 1.5;
+    }
+    
+    .quick-add-input.select-styled option:hover,
+    .quick-add-input.select-styled option:focus,
+    .quick-add-input.select-styled option:checked {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+    }
+    
+    .quick-add-input.select-styled option:checked {
+        background: #667eea;
+    }
+    
+    .quick-add-content select {
+        position: relative;
+        z-index: 2020;
+    }
+    
+    .quick-add-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .quick-add-btn-action {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-add-btn-action.cancel {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .quick-add-btn-action.save {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+    
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 50px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1001;
+        font-size: 0.9rem;
+    }
+    
+    .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    
+    @media (max-width: 992px) {
+        .calendar-day {
+            min-height: 70px;
+            padding: 5px;
+        }
+        
+        .day-finances {
+            display: none;
+        }
+        
+        .calendar-day.has-transaction::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+        
+        .calendar-day.has-large-expense::after {
+            background: #f5576c;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 1.6rem;
+        }
+        
+        .calendar-header {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .calendar-nav {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .calendar-title {
+            order: -1;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .today-btn {
+            width: 100%;
+        }
+        
+        .view-toggle {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .calendar-day {
+            min-height: 50px;
+        }
+        
+        .day-number {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header-section">
+        <h1 class="page-title"><i class="fas fa-calendar-alt me-2"></i>记账日历</h1>
+        <p class="page-subtitle">清晰掌握每日收支，让财务一目了然</p>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" onclick="changeMonth(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="calendar-title" id="calendarTitle"></div>
+                        <button class="calendar-nav-btn" onclick="changeMonth(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <button class="today-btn" onclick="goToToday()">
+                        <i class="fas fa-calendar-day me-1"></i>回到今天
+                    </button>
+                    <div class="view-toggle">
+                        <a href="{{ url_for('finance.index') }}" class="view-toggle-btn">
+                            <i class="fas fa-list me-1"></i>列表
+                        </a>
+                        <a href="{{ url_for('finance.calendar_view') }}" class="view-toggle-btn active">
+                            <i class="fas fa-calendar me-1"></i>日历
+                        </a>
+                    </div>
+                </div>
+                <div class="monthly-summary-bar">
+                    <div class="monthly-stat-item">
+                        <div class="monthly-stat-label">本月支出</div>
+                        <div class="monthly-stat-value expense" id="monthlyExpense">¥{{ monthly_summary.expense | default(0) | round(2) }}</div>
+                    </div>
+                    <div class="monthly-stat-item">
+                        <div class="monthly-stat-label">本月收入</div>
+                        <div class="monthly-stat-value income" id="monthlyIncome">¥{{ monthly_summary.income | default(0) | round(2) }}</div>
+                    </div>
+                    <div class="monthly-stat-item">
+                        <div class="monthly-stat-label">本月结余</div>
+                        <div class="monthly-stat-value balance" id="monthlyBalance">¥{{ monthly_summary.balance | default(0) | round(2) }}</div>
+                    </div>
+                </div>
+                <div class="calendar-body">
+                    <div class="calendar-weekdays">
+                        <div class="weekday weekend">日</div>
+                        <div class="weekday">一</div>
+                        <div class="weekday">二</div>
+                        <div class="weekday">三</div>
+                        <div class="weekday">四</div>
+                        <div class="weekday">五</div>
+                        <div class="weekday weekend">六</div>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px 25px;">
+                    <i class="fas fa-receipt me-2"></i>
+                    <span id="selectedDateTitle">今日收支</span>
+                </div>
+                <div class="day-stats-header">
+                    <div class="day-stat-item">
+                        <div class="day-stat-label">支出</div>
+                        <div class="day-stat-value expense" id="dayExpense">¥0</div>
+                    </div>
+                    <div class="day-stat-item">
+                        <div class="day-stat-label">收入</div>
+                        <div class="day-stat-value income" id="dayIncome">¥0</div>
+                    </div>
+                    <div class="day-stat-item">
+                        <div class="day-stat-label">结余</div>
+                        <div class="day-stat-value balance" id="dayBalance">¥0</div>
+                    </div>
+                </div>
+                <div class="day-detail-body">
+                    <div class="transaction-list" id="dayTransactionList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-receipt"></i></div>
+                            <div class="empty-state-text">暂无收支记录</div>
+                        </div>
+                    </div>
+                    <button class="quick-add-btn" onclick="openQuickAdd()">
+                        <i class="fas fa-plus"></i> 快速记账
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="quick-add-modal" id="quickAddModal">
+    <div class="quick-add-content">
+        <h3 class="quick-add-title"><i class="fas fa-plus-circle"></i> 快速记账</h3>
+        <input type="text" class="quick-add-input" id="quickAddInput" 
+               placeholder="备注 金额，如「午饭 30」">
+        <p style="color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-bottom: 15px;">
+            <i class="fas fa-lightbulb me-1"></i>格式：备注 金额，系统自动识别分类
+        </p>
+        <div style="margin-bottom: 12px;">
+            <label style="color: rgba(255,255,255,0.85); font-size: 0.8rem; margin-bottom: 5px; display: block;">场景/地点（可选）</label>
+            <input type="text" class="quick-add-input" id="quickAddScene" placeholder="如：旅行、杭州、公司..." list="sceneList">
+        </div>
+        <div class="quick-add-actions">
+            <button class="quick-add-btn-action cancel" onclick="closeQuickAdd()">取消</button>
+            <button class="quick-add-btn-action save" onclick="submitQuickAdd()">记录</button>
+        </div>
+    </div>
+</div>
+
+<div class="quick-add-modal" id="editModal">
+    <div class="quick-add-content">
+        <h3 class="quick-add-title"><i class="fas fa-edit"></i> 编辑记录</h3>
+        <input type="hidden" id="editTransactionId">
+        <div style="margin-bottom: 12px;">
+            <label style="color: rgba(255,255,255,0.85); font-size: 0.8rem; margin-bottom: 5px; display: block;">类型</label>
+            <select class="quick-add-input select-styled" id="editType" onchange="updateCategoryOptions()">
+                <option value="expense">支出</option>
+                <option value="income">收入</option>
+            </select>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label style="color: rgba(255,255,255,0.85); font-size: 0.8rem; margin-bottom: 5px; display: block;">金额</label>
+            <input type="number" step="0.01" class="quick-add-input" id="editAmount" placeholder="输入金额">
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label style="color: rgba(255,255,255,0.85); font-size: 0.8rem; margin-bottom: 5px; display: block;">分类</label>
+            <select class="quick-add-input select-styled" id="editCategory">
+            </select>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label style="color: rgba(255,255,255,0.85); font-size: 0.8rem; margin-bottom: 5px; display: block;">备注</label>
+            <input type="text" class="quick-add-input" id="editNote" placeholder="输入备注">
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label style="color: rgba(255,255,255,0.85); font-size: 0.8rem; margin-bottom: 5px; display: block;">场景/地点</label>
+            <input type="text" class="quick-add-input" id="editScene" placeholder="如：旅行、杭州、公司..." list="sceneList">
+        </div>
+        <div class="quick-add-actions">
+            <button class="quick-add-btn-action cancel" onclick="closeEditModal()">取消</button>
+            <button class="quick-add-btn-action save" onclick="submitEdit()">保存</button>
+        </div>
+    </div>
+</div>
+
+<datalist id="sceneList"></datalist>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let todayDate = '{{ today }}';
+    let currentYear = {{ year }};
+    let currentMonth = {{ month }};
+    let selectedDate = todayDate;
+    let dailyStats = {{ daily_stats | tojson }};
+    
+    const EXPENSE_CATEGORIES = ['餐饮', '交通', '购物', '娱乐', '生活缴费', '医疗', '教育', '其他支出'];
+    const INCOME_CATEGORIES = ['工资', '兼职', '理财', '红包', '其他收入'];
+    
+    const LARGE_EXPENSE_THRESHOLD = 500;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        renderCalendar();
+        loadDayDetail(selectedDate);
+        loadScenes();
+    });
+    
+    function loadScenes() {
+        fetch('/finance/api/scenes')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const datalist = document.getElementById('sceneList');
+                    datalist.innerHTML = '';
+                    data.scenes.forEach(scene => {
+                        const option = document.createElement('option');
+                        option.value = scene;
+                        datalist.appendChild(option);
+                    });
+                }
+            });
+    }
+    
+    function getCategoriesByType(type) {
+        return type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    }
+    
+    function updateCategoryOptions(selectedCategory) {
+        const type = document.getElementById('editType').value;
+        const select = document.getElementById('editCategory');
+        select.innerHTML = '';
+        
+        const categories = getCategoriesByType(type);
+        let foundMatch = false;
+        
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            if (selectedCategory && cat === selectedCategory) {
+                option.selected = true;
+                foundMatch = true;
+            }
+            select.appendChild(option);
+        });
+        
+        if (selectedCategory && !foundMatch) {
+            const customOption = document.createElement('option');
+            customOption.value = selectedCategory;
+            customOption.textContent = selectedCategory;
+            customOption.selected = true;
+            select.insertBefore(customOption, select.firstChild);
+        }
+    }
+    
+    function renderCalendar() {
+        const title = `${currentYear}年${currentMonth + 1}月`;
+        document.getElementById('calendarTitle').textContent = title;
+        
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const startDay = firstDay.getDay();
+        const totalDays = lastDay.getDate();
+        
+        const prevLastDay = new Date(currentYear, currentMonth, 0).getDate();
+        
+        let html = '';
+        let dayCount = 1;
+        let nextMonthDay = 1;
+        
+        for (let i = 0; i < 42; i++) {
+            let dayNum, dateStr, isOtherMonth = false;
+            let dayOfWeek = i % 7;
+            let isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            
+            if (i < startDay) {
+                dayNum = prevLastDay - startDay + i + 1;
+                const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                dateStr = formatDateStr(prevYear, prevMonth, dayNum);
+                isOtherMonth = true;
+            } else if (dayCount > totalDays) {
+                dayNum = nextMonthDay++;
+                const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+                const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+                dateStr = formatDateStr(nextYear, nextMonth, dayNum);
+                isOtherMonth = true;
+            } else {
+                dayNum = dayCount++;
+                dateStr = formatDateStr(currentYear, currentMonth, dayNum);
+            }
+            
+            const isToday = dateStr === todayDate;
+            const isSelected = dateStr === selectedDate;
+            const dayStat = dailyStats[dateStr] || {};
+            const hasExpense = dayStat.expense > 0;
+            const hasIncome = dayStat.income > 0;
+            const hasLargeExpense = dayStat.expense >= LARGE_EXPENSE_THRESHOLD;
+            
+            let classes = 'calendar-day';
+            if (isOtherMonth) classes += ' other-month';
+            if (isToday) classes += ' today';
+            if (isSelected) classes += ' selected';
+            if (isWeekend && !isOtherMonth) classes += ' weekend-day';
+            if (hasExpense || hasIncome) classes += ' has-transaction';
+            if (hasLargeExpense) classes += ' has-large-expense';
+            
+            html += `<div class="${classes}" onclick="selectDate('${dateStr}')">`;
+            html += `<div class="day-number">${dayNum}</div>`;
+            
+            if ((hasExpense || hasIncome) && !isOtherMonth) {
+                html += '<div class="day-finances">';
+                if (hasExpense) {
+                    html += `<div class="finance-amount expense">-¥${formatMoney(dayStat.expense)}</div>`;
+                }
+                if (hasIncome) {
+                    html += `<div class="finance-amount income">+¥${formatMoney(dayStat.income)}</div>`;
+                }
+                html += '</div>';
+            }
+            
+            if (hasLargeExpense && !isOtherMonth) {
+                html += '<div class="large-expense-dot"></div>';
+            }
+            
+            html += '</div>';
+            
+            if (i >= 34 && dayCount > totalDays) break;
+        }
+        
+        document.getElementById('calendarDays').innerHTML = html;
+    }
+    
+    function formatDateStr(year, month, day) {
+        return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+    
+    function formatMoney(amount) {
+        if (amount >= 1000) {
+            return (amount / 1000).toFixed(1) + 'k';
+        }
+        return amount.toFixed(0);
+    }
+    
+    function selectDate(dateStr) {
+        selectedDate = dateStr;
+        renderCalendar();
+        loadDayDetail(dateStr);
+        
+        const date = new Date(dateStr);
+        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        const title = dateStr === todayDate ? '今日收支' : `${dateStr} ${weekdays[date.getDay()]}`;
+        document.getElementById('selectedDateTitle').textContent = title;
+    }
+    
+    function loadDayDetail(dateStr) {
+        fetch(`/finance/api/transactions-by-date?date=${dateStr}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    renderDayDetail(data.transactions, data.stats);
+                }
+            });
+    }
+    
+    function renderDayDetail(transactions, stats) {
+        document.getElementById('dayExpense').textContent = `¥${(stats.expense || 0).toFixed(2)}`;
+        document.getElementById('dayIncome').textContent = `¥${(stats.income || 0).toFixed(2)}`;
+        document.getElementById('dayBalance').textContent = `¥${((stats.income || 0) - (stats.expense || 0)).toFixed(2)}`;
+        
+        const container = document.getElementById('dayTransactionList');
+        
+        if (!transactions || transactions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-receipt"></i></div>
+                    <div class="empty-state-text">暂无收支记录</div>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        transactions.forEach(t => {
+            const iconClass = t.type === 'expense' ? 'expense' : 'income';
+            const amountPrefix = t.type === 'expense' ? '-' : '+';
+            const sceneHtml = t.scene ? `<span style="background: rgba(102, 126, 234, 0.2); color: #667eea; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px;"><i class="fas fa-map-marker-alt me-1"></i>${t.scene}</span>` : '';
+            
+            html += `
+                <div class="transaction-item">
+                    <div class="transaction-icon ${iconClass}">
+                        <i class="fas fa-${t.type === 'expense' ? 'arrow-down' : 'arrow-up'}"></i>
+                    </div>
+                    <div class="transaction-info">
+                        <div class="transaction-category">
+                            ${t.category}${sceneHtml}
+                        </div>
+                        <div class="transaction-note">${t.note || '无备注'}</div>
+                    </div>
+                    <div class="transaction-amount ${iconClass}">
+                        ${amountPrefix}¥${t.amount.toFixed(2)}
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="trans-action-btn" onclick="openEditModal(${t.id})" title="编辑">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="trans-action-btn delete" onclick="deleteTransaction(${t.id})" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    function updateMonthlySummary(summary) {
+        const expense = summary.expense || 0;
+        const income = summary.income || 0;
+        const balance = summary.balance || 0;
+        
+        document.getElementById('monthlyExpense').textContent = `¥${expense.toFixed(2)}`;
+        document.getElementById('monthlyIncome').textContent = `¥${income.toFixed(2)}`;
+        document.getElementById('monthlyBalance').textContent = `¥${balance.toFixed(2)}`;
+    }
+    
+    function changeMonth(delta) {
+        currentMonth += delta;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        } else if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        
+        fetch(`/finance/api/monthly-stats?year=${currentYear}&month=${currentMonth + 1}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    dailyStats = data.daily_stats;
+                    updateMonthlySummary(data.monthly_summary);
+                    renderCalendar();
+                }
+            });
+    }
+    
+    function goToToday() {
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth();
+        selectedDate = todayDate;
+        
+        fetch(`/finance/api/monthly-stats?year=${currentYear}&month=${currentMonth + 1}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    dailyStats = data.daily_stats;
+                    updateMonthlySummary(data.monthly_summary);
+                    renderCalendar();
+                    loadDayDetail(selectedDate);
+                    document.getElementById('selectedDateTitle').textContent = '今日收支';
+                }
+            });
+    }
+    
+    function openQuickAdd() {
+        document.getElementById('quickAddInput').value = '';
+        document.getElementById('quickAddScene').value = '';
+        document.getElementById('quickAddModal').classList.add('show');
+        document.getElementById('quickAddInput').focus();
+    }
+    
+    function closeQuickAdd() {
+        document.getElementById('quickAddModal').classList.remove('show');
+    }
+    
+    function submitQuickAdd() {
+        const text = document.getElementById('quickAddInput').value.trim();
+        const scene = document.getElementById('quickAddScene').value.trim();
+        if (!text) {
+            showToast('请输入内容', 'error');
+            return;
+        }
+        
+        fetch('/finance/api/quick-add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text, date: selectedDate, scene: scene})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('记录成功！');
+                closeQuickAdd();
+                loadScenes();
+                
+                fetch(`/finance/api/monthly-stats?year=${currentYear}&month=${currentMonth + 1}`)
+                    .then(r => r.json())
+                    .then(monthData => {
+                        if (monthData.success) {
+                            dailyStats = monthData.daily_stats;
+                            updateMonthlySummary(monthData.monthly_summary);
+                            renderCalendar();
+                            loadDayDetail(selectedDate);
+                        }
+                    });
+            } else {
+                showToast(data.message, 'error');
+            }
+        });
+    }
+    
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.background = type === 'success' 
+            ? 'linear-gradient(135deg, #38ef7d 0%, #11998e 100%)'
+            : 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+    
+    function openEditModal(transactionId) {
+        fetch(`/finance/api/transaction/${transactionId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.id) {
+                    document.getElementById('editTransactionId').value = data.id;
+                    document.getElementById('editType').value = data.type;
+                    document.getElementById('editAmount').value = data.amount;
+                    updateCategoryOptions(data.category);
+                    document.getElementById('editNote').value = data.note || '';
+                    document.getElementById('editScene').value = data.scene || '';
+                    document.getElementById('editModal').classList.add('show');
+                }
+            });
+    }
+    
+    function closeEditModal() {
+        document.getElementById('editModal').classList.remove('show');
+    }
+    
+    function submitEdit() {
+        const id = document.getElementById('editTransactionId').value;
+        const type = document.getElementById('editType').value;
+        const amount = parseFloat(document.getElementById('editAmount').value);
+        const category = document.getElementById('editCategory').value.trim();
+        const note = document.getElementById('editNote').value.trim();
+        const scene = document.getElementById('editScene').value.trim();
+        
+        if (!amount || !category) {
+            showToast('金额和分类不能为空', 'error');
+            return;
+        }
+        
+        fetch(`/finance/api/edit/${id}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({type, amount, category, note, scene, date: selectedDate})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('修改成功！');
+                closeEditModal();
+                loadScenes();
+                fetch(`/finance/api/monthly-stats?year=${currentYear}&month=${currentMonth + 1}`)
+                    .then(r => r.json())
+                    .then(monthData => {
+                        if (monthData.success) {
+                            dailyStats = monthData.daily_stats;
+                            updateMonthlySummary(monthData.monthly_summary);
+                            renderCalendar();
+                            loadDayDetail(selectedDate);
+                        }
+                    });
+            } else {
+                showToast(data.message || '修改失败', 'error');
+            }
+        });
+    }
+    
+    function deleteTransaction(transactionId) {
+        if (!confirm('确定要删除这条记录吗？')) return;
+        
+        fetch(`/finance/api/delete/${transactionId}`, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('删除成功！');
+                    fetch(`/finance/api/monthly-stats?year=${currentYear}&month=${currentMonth + 1}`)
+                        .then(r => r.json())
+                        .then(monthData => {
+                            if (monthData.success) {
+                                dailyStats = monthData.daily_stats;
+                                updateMonthlySummary(monthData.monthly_summary);
+                                renderCalendar();
+                                loadDayDetail(selectedDate);
+                            }
+                        });
+                }
+            });
+    }
+    
+    document.getElementById('quickAddInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            submitQuickAdd();
+        }
+    });
+    
+    document.getElementById('quickAddModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeQuickAdd();
+        }
+    });
+    
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEditModal();
+        }
+    });
+</script>
+{% endblock %}

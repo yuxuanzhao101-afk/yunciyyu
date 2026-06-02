@@ -1,0 +1,971 @@
+{% extends "base.html" %}
+
+{% block title %}记账 - yunicyyu{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .quick-add-section {
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .quick-add-input-wrapper {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .quick-add-input {
+        background: rgba(30, 30, 50, 0.95);
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 14px 20px;
+        font-size: 1rem;
+        color: #fff;
+        flex: 1;
+        min-width: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-add-input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: rgba(30, 30, 50, 1);
+    }
+    
+    .quick-add-input::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .quick-add-input option {
+        background: #1e1e32;
+        color: #fff;
+        padding: 12px 16px;
+        font-size: 1rem;
+    }
+    
+    .quick-add-input option:checked {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    
+    .voice-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 14px 20px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .voice-btn:hover {
+        transform: scale(1.02);
+    }
+    
+    .voice-btn.recording {
+        background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+    }
+    
+    .quick-add-hint {
+        color: rgba(255,255,255,0.4);
+        font-size: 0.8rem;
+        margin-bottom: 12px;
+    }
+    
+    .quick-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .quick-tag {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 18px;
+        padding: 6px 14px;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+    
+    .quick-tag:hover {
+        background: rgba(102, 126, 234, 0.3);
+        border-color: #667eea;
+        color: #fff;
+    }
+    
+    .daily-summary {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+        border-radius: 12px;
+        padding: 12px 20px;
+        margin-bottom: 25px;
+        border-left: 3px solid #667eea;
+    }
+    
+    .daily-summary-text {
+        color: rgba(255,255,255,0.9);
+        font-size: 0.95rem;
+    }
+    
+    .daily-summary-text i {
+        color: #667eea;
+        margin-right: 8px;
+    }
+    
+    .view-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .view-tab {
+        background: rgba(30, 30, 50, 0.9);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 10px 20px;
+        color: rgba(255,255,255,0.9);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    
+    .view-tab:hover, .view-tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+    }
+    
+    .filter-section {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .filter-label {
+        color: rgba(255,255,255,0.75);
+        font-size: 0.85rem;
+    }
+    
+    .filter-btn {
+        background: rgba(30, 30, 50, 0.9);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 15px;
+        padding: 6px 14px;
+        color: rgba(255,255,255,0.9);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .filter-btn:hover, .filter-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: #fff;
+    }
+    
+    .filter-btn.all {
+        background: rgba(30, 30, 50, 0.9);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .stat-card {
+            padding: 15px !important;
+        }
+        
+        .stat-value {
+            font-size: 1.3rem !important;
+        }
+    }
+    
+    .stat-card {
+        background: rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.08);
+        transition: all 0.3s ease;
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card.expense { border-left: 3px solid #f5576c; }
+    .stat-card.income { border-left: 3px solid #38ef7d; }
+    .stat-card.balance { border-left: 3px solid #667eea; }
+    .stat-card.count { border-left: 3px solid #f093fb; }
+    
+    .stat-card.total {
+        background: linear-gradient(135deg, rgba(102,126,234,0.15) 0%, rgba(118,75,162,0.15) 100%);
+        border: 1px solid rgba(102,126,234,0.3);
+    }
+    
+    .stat-label {
+        color: rgba(255,255,255,0.55);
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .stat-value.expense { color: #f5576c; }
+    .stat-value.income { color: #38ef7d; }
+    .stat-value.balance { color: #667eea; }
+    .stat-value.count { color: #f093fb; }
+    .stat-value.positive { color: #38ef7d; }
+    .stat-value.negative { color: #f5576c; }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.9);
+    }
+    
+    .category-stats {
+        background: rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .category-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        gap: 10px;
+    }
+    
+    .category-bar:last-child { margin-bottom: 0; }
+    
+    .category-name {
+        width: 70px;
+        min-width: 70px;
+        color: rgba(255,255,255,0.8);
+        font-size: 0.85rem;
+    }
+    
+    .category-progress {
+        flex: 1;
+        min-width: 0;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .category-progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s ease;
+    }
+    
+    .category-amount {
+        width: 70px;
+        min-width: 70px;
+        text-align: right;
+        color: rgba(255,255,255,0.6);
+        font-size: 0.85rem;
+    }
+    
+    .transaction-list {
+        background: rgba(255,255,255,0.05);
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        overflow: hidden;
+    }
+    
+    .transaction-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .transaction-item {
+        display: flex;
+        align-items: center;
+        padding: 14px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: all 0.3s ease;
+        gap: 12px;
+    }
+    
+    .transaction-item:hover {
+        background: rgba(255,255,255,0.03);
+    }
+    
+    .transaction-item:last-child { border-bottom: none; }
+    
+    .transaction-icon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        background: rgba(102,126,234,0.15);
+    }
+    
+    .transaction-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .transaction-category {
+        color: rgba(255,255,255,0.9);
+        font-weight: 500;
+        margin-bottom: 2px;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .transaction-note {
+        color: rgba(255,255,255,0.45);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .transaction-amount {
+        font-size: 1rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .transaction-amount.expense { color: #f5576c; }
+    .transaction-amount.income { color: #38ef7d; }
+    
+    .transaction-actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+    
+    .transaction-btn {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.3);
+        cursor: pointer;
+        padding: 6px 8px;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    
+    .transaction-btn:hover { color: #667eea; }
+    .transaction-btn.delete:hover { color: #f5576c; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+    
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 50px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        font-size: 0.9rem;
+    }
+    
+    .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    
+    .edit-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .edit-modal.show {
+        display: flex;
+    }
+    
+    .edit-modal-content {
+        background: #1a1a2e;
+        border-radius: 16px;
+        padding: 25px;
+        width: 100%;
+        max-width: 420px;
+        border: 1px solid rgba(255,255,255,0.1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .edit-modal-title {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        color: #fff;
+    }
+    
+    .edit-form-group {
+        margin-bottom: 16px;
+    }
+    
+    .edit-form-label {
+        display: block;
+        color: rgba(255,255,255,0.7);
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+    }
+    
+    .edit-form-input, .edit-form-select {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgba(30, 30, 50, 0.95);
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        color: #fff;
+    }
+    
+    .edit-form-input:focus, .edit-form-select:focus {
+        outline: none;
+        border-color: #667eea;
+        background: rgba(30, 30, 50, 1);
+    }
+    
+    .edit-form-select option {
+        background: #1e1e32;
+        color: #fff;
+        padding: 10px 14px;
+    }
+    
+    .edit-form-select option:checked {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    
+    .edit-modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .edit-modal-btn {
+        flex: 1;
+        padding: 11px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .edit-modal-btn.cancel {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .edit-modal-btn.save {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+    
+    @media (max-width: 576px) {
+        .container {
+            padding: 15px;
+        }
+        
+        .quick-add-section {
+            padding: 18px;
+        }
+        
+        .quick-add-input {
+            padding: 12px 16px;
+            font-size: 0.95rem;
+        }
+        
+        .voice-btn {
+            padding: 12px 16px;
+        }
+        
+        .quick-tag {
+            padding: 5px 12px;
+            font-size: 0.8rem;
+        }
+        
+        .transaction-item {
+            padding: 12px 15px;
+        }
+        
+        .transaction-icon {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+        }
+        
+        .transaction-actions {
+            display: none;
+        }
+        
+        .transaction-item:hover .transaction-actions {
+            display: flex;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="quick-add-section">
+        <div class="quick-add-input-wrapper">
+            <input type="text" class="quick-add-input" id="quickInput" 
+                   placeholder="快速记账：备注 金额，如「午饭 30」或「工资 5000」">
+            <button class="voice-btn" id="voiceBtn" title="语音输入">
+                <i class="fas fa-microphone"></i>
+            </button>
+        </div>
+        <p class="quick-add-hint">
+            <i class="fas fa-lightbulb me-1"></i>
+            格式：备注 金额（如 午饭 30），系统自动识别分类
+        </p>
+        <div class="quick-tags">
+            <span class="quick-tag" data-text="早餐">早餐</span>
+            <span class="quick-tag" data-text="午餐">午餐</span>
+            <span class="quick-tag" data-text="晚餐">晚餐</span>
+            <span class="quick-tag" data-text="打车">打车</span>
+            <span class="quick-tag" data-text="奶茶">奶茶</span>
+            <span class="quick-tag" data-text="超市">超市</span>
+            <span class="quick-tag" data-text="外卖">外卖</span>
+        </div>
+    </div>
+    
+    <div class="view-tabs">
+        <a href="{{ url_for('finance.index') }}" class="view-tab active">列表</a>
+        <a href="{{ url_for('finance.calendar_view') }}" class="view-tab">日历</a>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card expense">
+            <div class="stat-label">今日支出</div>
+            <div class="stat-value expense">¥{{ "%.2f"|format(stats.today_expense) }}</div>
+        </div>
+        <div class="stat-card income">
+            <div class="stat-label">今日收入</div>
+            <div class="stat-value income">¥{{ "%.2f"|format(stats.today_income) }}</div>
+        </div>
+        <div class="stat-card expense">
+            <div class="stat-label">本月支出</div>
+            <div class="stat-value expense">¥{{ "%.2f"|format(stats.month_expense) }}</div>
+        </div>
+        <div class="stat-card balance">
+            <div class="stat-label">本月结余</div>
+            <div class="stat-value balance">¥{{ "%.2f"|format(stats.month_balance) }}</div>
+        </div>
+        <div class="stat-card balance total">
+            <div class="stat-label">总余额</div>
+            <div class="stat-value balance {{ 'positive' if stats.total_balance >= 0 else 'negative' }}">¥{{ "%.2f"|format(stats.total_balance) }}</div>
+        </div>
+    </div>
+    
+    {% if daily_summary %}
+    <div class="daily-summary">
+        <div class="daily-summary-text">
+            <i class="fas fa-chart-line"></i>{{ daily_summary }}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if stats.category_stats %}
+    <div class="category-stats">
+        <div class="section-header">
+            <h3 class="section-title"><i class="fas fa-chart-pie me-2"></i>本月支出分布</h3>
+        </div>
+        {% set max_amount = stats.category_stats[0].amount if stats.category_stats else 1 %}
+        {% for item in stats.category_stats %}
+        <div class="category-bar">
+            <span class="category-name">{{ item.category }}</span>
+            <div class="category-progress">
+                <div class="category-progress-fill" 
+                     style="width: {{ (item.amount / max_amount * 100) if max_amount > 0 else 0 }}%; 
+                            background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+            </div>
+            <span class="category-amount">¥{{ "%.0f"|format(item.amount) }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="category-stats" id="sceneStatsSection" style="display: none;">
+        <div class="section-header">
+            <h3 class="section-title"><i class="fas fa-map-marker-alt me-2"></i>场景统计</h3>
+        </div>
+        <div id="sceneStatsContent"></div>
+    </div>
+    
+    <div class="transaction-list">
+        <div class="transaction-header">
+            <h3 class="section-title"><i class="fas fa-list me-2"></i>最近记录</h3>
+            <a href="{{ url_for('finance.add') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>添加
+            </a>
+        </div>
+        
+        {% if recent_transactions %}
+            {% for t in recent_transactions %}
+            <div class="transaction-item" data-id="{{ t.id }}">
+                <div class="transaction-icon" style="background: rgba(102,126,234,0.15);">
+                    <i class="fas fa-{{ 'arrow-down' if t.type == 'expense' else 'arrow-up' }}"></i>
+                </div>
+                <div class="transaction-info">
+                    <div class="transaction-category">
+                        {{ t.category }}
+                        {% if t.scene %}
+                        <span style="background: rgba(102, 126, 234, 0.2); color: #667eea; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 6px;"><i class="fas fa-map-marker-alt me-1"></i>{{ t.scene }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="transaction-note">{{ t.note or '无备注' }} · {{ t.date }}</div>
+                </div>
+                <div class="transaction-amount {{ t.type }}">
+                    {{ '-' if t.type == 'expense' else '+' }}¥{{ "%.2f"|format(t.amount) }}
+                </div>
+                <div class="transaction-actions">
+                    <button class="transaction-btn" onclick="openEditModal({{ t.id }})" title="编辑">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="transaction-btn delete" onclick="deleteTransaction({{ t.id }})" title="删除">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-receipt"></i>
+                <p>暂无记录，开始记账吧！</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="edit-modal" id="editModal">
+    <div class="edit-modal-content">
+        <h3 class="edit-modal-title"><i class="fas fa-edit me-2"></i>编辑记录</h3>
+        <input type="hidden" id="editId">
+        <div class="edit-form-group">
+            <label class="edit-form-label">金额</label>
+            <input type="number" step="0.01" class="edit-form-input" id="editAmount">
+        </div>
+        <div class="edit-form-group">
+            <label class="edit-form-label">分类</label>
+            <select class="edit-form-select" id="editCategory">
+                {% for cat in categories %}
+                <option value="{{ cat.name }}" data-type="{{ cat.type }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="edit-form-group">
+            <label class="edit-form-label">备注</label>
+            <input type="text" class="edit-form-input" id="editNote">
+        </div>
+        <div class="edit-form-group">
+            <label class="edit-form-label">场景/地点</label>
+            <input type="text" class="edit-form-input" id="editScene" placeholder="如：旅行、杭州、公司..." list="sceneList">
+        </div>
+        <div class="edit-form-group">
+            <label class="edit-form-label">日期</label>
+            <input type="date" class="edit-form-input" id="editDate">
+        </div>
+        <div class="edit-modal-actions">
+            <button class="edit-modal-btn cancel" onclick="closeEditModal()">取消</button>
+            <button class="edit-modal-btn save" onclick="saveEdit()">保存</button>
+        </div>
+    </div>
+</div>
+
+<datalist id="sceneList"></datalist>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const quickInput = document.getElementById('quickInput');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const toast = document.getElementById('toast');
+    const editModal = document.getElementById('editModal');
+    
+    loadScenes();
+    loadSceneStats();
+    
+    function loadScenes() {
+        fetch('/finance/api/scenes')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const datalist = document.getElementById('sceneList');
+                    datalist.innerHTML = '';
+                    data.scenes.forEach(scene => {
+                        const option = document.createElement('option');
+                        option.value = scene;
+                        datalist.appendChild(option);
+                    });
+                }
+            });
+    }
+    
+    function loadSceneStats() {
+        fetch('/finance/api/scene-stats')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && Object.keys(data.stats).length > 0) {
+                    const section = document.getElementById('sceneStatsSection');
+                    const content = document.getElementById('sceneStatsContent');
+                    
+                    const sortedScenes = Object.entries(data.stats)
+                        .sort((a, b) => b[1].expense - a[1].expense);
+                    
+                    const maxExpense = Math.max(...sortedScenes.map(([_, s]) => s.expense));
+                    
+                    let html = '';
+                    sortedScenes.forEach(([scene, stats]) => {
+                        const width = maxExpense > 0 ? (stats.expense / maxExpense * 100) : 0;
+                        html += `
+                            <div class="category-bar">
+                                <span class="category-name">${scene}</span>
+                                <div class="category-progress">
+                                    <div class="category-progress-fill" 
+                                         style="width: ${width}%; background: linear-gradient(90deg, #f5576c, #f093fb);"></div>
+                                </div>
+                                <span class="category-amount">¥${stats.expense.toFixed(0)}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    content.innerHTML = html;
+                    section.style.display = 'block';
+                }
+            });
+    }
+    
+    function showToast(message, type = 'success') {
+        toast.textContent = message;
+        toast.style.background = type === 'success' 
+            ? 'linear-gradient(135deg, #38ef7d 0%, #11998e 100%)'
+            : 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+    
+    quickInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const text = this.value.trim();
+            if (!text) return;
+            
+            fetch('/finance/api/quick-add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: text})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`记录成功！${data.parsed.category} ¥${data.parsed.amount}`);
+                    this.value = '';
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            });
+        }
+    });
+    
+    document.querySelectorAll('.quick-tag').forEach(tag => {
+        tag.addEventListener('click', function() {
+            quickInput.value = this.dataset.text + ' ';
+            quickInput.focus();
+        });
+    });
+    
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.continuous = false;
+        
+        let isRecording = false;
+        
+        voiceBtn.addEventListener('click', function() {
+            if (isRecording) {
+                recognition.stop();
+                voiceBtn.classList.remove('recording');
+                isRecording = false;
+            } else {
+                recognition.start();
+                voiceBtn.classList.add('recording');
+                isRecording = true;
+            }
+        });
+        
+        recognition.onresult = function(event) {
+            const text = event.results[0][0].transcript;
+            quickInput.value = text;
+            voiceBtn.classList.remove('recording');
+            isRecording = false;
+        };
+        
+        recognition.onerror = function() {
+            showToast('语音识别失败', 'error');
+            voiceBtn.classList.remove('recording');
+            isRecording = false;
+        };
+    } else {
+        voiceBtn.style.display = 'none';
+    }
+    
+    function openEditModal(id) {
+        fetch(`/finance/api/transaction/${id}`)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('editId').value = id;
+            document.getElementById('editAmount').value = data.amount;
+            document.getElementById('editCategory').value = data.category;
+            document.getElementById('editNote').value = data.note || '';
+            document.getElementById('editScene').value = data.scene || '';
+            document.getElementById('editDate').value = data.date;
+            editModal.classList.add('show');
+        });
+    }
+    
+    function closeEditModal() {
+        editModal.classList.remove('show');
+    }
+    
+    function saveEdit() {
+        const id = document.getElementById('editId').value;
+        const data = {
+            amount: document.getElementById('editAmount').value,
+            category: document.getElementById('editCategory').value,
+            note: document.getElementById('editNote').value,
+            scene: document.getElementById('editScene').value,
+            date: document.getElementById('editDate').value
+        };
+        
+        fetch(`/finance/api/edit/${id}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                showToast('修改成功！');
+                closeEditModal();
+                loadScenes();
+                setTimeout(() => location.reload(), 500);
+            }
+        });
+    }
+    
+    function deleteTransaction(id) {
+        if (!confirm('确定删除这条记录？')) return;
+        
+        fetch(`/finance/api/delete/${id}`, {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('删除成功！');
+                setTimeout(() => location.reload(), 500);
+            }
+        });
+    }
+    
+    editModal.addEventListener('click', function(e) {
+        if (e.target === editModal) closeEditModal();
+    });
+</script>
+{% endblock %}
