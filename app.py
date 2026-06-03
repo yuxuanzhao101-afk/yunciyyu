@@ -7,6 +7,7 @@ yunicyyu 个人网站主应用
 import socket
 import os
 from flask import Flask, render_template, jsonify, request, send_file
+from werkzeug.middleware.proxy_fix import ProxyFix
 from models import (
     init_db, get_stats, get_finance_stats, get_daily_summary,
     backup_database, get_backup_list, restore_database, BACKUP_DIR
@@ -18,8 +19,14 @@ from modules.quotes import quotes_bp
 
 app = Flask(__name__, static_folder='static')
 
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+# 生产环境配置
+if os.environ.get('FLASK_ENV') == 'production':
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+    app.config['TEMPLATES_AUTO_RELOAD'] = False
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1年缓存
+else:
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 init_db()
 
@@ -105,12 +112,16 @@ def find_available_port(start_port=212, max_attempts=10):
 
 
 if __name__ == '__main__':
-    port = find_available_port(212)
-    
-    print('=' * 50)
-    print('yunicyyu 个人网站启动中...')
-    print(f'请在浏览器中访问: http://127.0.0.1:{port}')
-    print('按 Ctrl+C 停止服务器')
-    print('=' * 50)
-    
-    app.run(debug=True, port=port, use_reloader=True)
+    # 生产环境通过 gunicorn 启动，不执行此代码
+    if os.environ.get('FLASK_ENV') == 'production':
+        print('生产环境请使用 gunicorn 启动')
+    else:
+        port = find_available_port(212)
+        
+        print('=' * 50)
+        print('yunicyyu 个人网站启动中...')
+        print(f'请在浏览器中访问: http://127.0.0.1:{port}')
+        print('按 Ctrl+C 停止服务器')
+        print('=' * 50)
+        
+        app.run(debug=True, port=port, use_reloader=True)
