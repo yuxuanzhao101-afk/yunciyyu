@@ -8,9 +8,10 @@ venv/
 ENV/
 
 # Database
-*.db
+# *.db  # 暂时允许上传主数据库
 *.sqlite
 *.sqlite3
+backups/*.db
 
 # Backups
 backups/
