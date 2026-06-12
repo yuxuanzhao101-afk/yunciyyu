@@ -3,12 +3,14 @@
 记账模块
 """
 
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, make_response
+from functools import wraps
 from models import (
     get_categories, add_transaction, get_transactions, 
     get_transaction_by_id, delete_transaction, update_transaction,
     get_finance_stats, get_daily_summary, get_monthly_transactions,
-    get_db, get_all_scenes, get_scene_stats
+    get_db, get_all_scenes, get_scene_stats,
+    set_finance_password, verify_finance_password, has_finance_password
 )
 from datetime import datetime
 import calendar
@@ -16,7 +18,96 @@ import calendar
 finance_bp = Blueprint('finance', __name__, url_prefix='/finance', template_folder='../../templates/finance')
 
 
+# 密码验证装饰器
+def finance_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # 如果没有设置密码，直接允许访问
+        if not has_finance_password():
+            return f(*args, **kwargs)
+        
+        # 检查 session 中是否已验证
+        if not session.get('finance_authenticated'):
+            return redirect(url_for('finance.login'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@finance_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    """财务密码登录页面"""
+    # 如果没有设置密码，跳转到设置密码页面
+    if not has_finance_password():
+        return redirect(url_for('finance.set_password'))
+    
+    # 如果已经验证，直接跳转到首页
+    if session.get('finance_authenticated'):
+        return redirect(url_for('finance.index'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if verify_finance_password(password):
+            session['finance_authenticated'] = True
+            return redirect(url_for('finance.index'))
+        else:
+            return render_template('finance/login.html', error='密码错误')
+    
+    return render_template('finance/login.html')
+
+
+@finance_bp.route('/logout')
+def logout():
+    """退出财务模块"""
+    session.pop('finance_authenticated', None)
+    return redirect(url_for('finance.login'))
+
+
+@finance_bp.route('/set-password', methods=['GET', 'POST'])
+def set_password():
+    """设置财务密码"""
+    # 如果已经设置密码，需要验证后才能修改
+    if has_finance_password():
+        if not session.get('finance_authenticated'):
+            return redirect(url_for('finance.login'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if len(password) < 4:
+            return render_template('finance/set_password.html', error='密码至少4位')
+        
+        set_finance_password(password)
+        session['finance_authenticated'] = True
+        return redirect(url_for('finance.index'))
+    
+    return render_template('finance/set_password.html')
+
+
+@finance_bp.route('/change-password', methods=['GET', 'POST'])
+def change_password():
+    """修改财务密码"""
+    # 必须已验证才能修改
+    if not session.get('finance_authenticated'):
+        return redirect(url_for('finance.login'))
+    
+    if request.method == 'POST':
+        old_password = request.form.get('old_password', '')
+        new_password = request.form.get('new_password', '')
+        
+        if not verify_finance_password(old_password):
+            return render_template('finance/change_password.html', error='原密码错误')
+        
+        if len(new_password) < 4:
+            return render_template('finance/change_password.html', error='新密码至少4位')
+        
+        set_finance_password(new_password)
+        return redirect(url_for('finance.index'))
+    
+    return render_template('finance/change_password.html')
+
+
 @finance_bp.route('/')
+@finance_login_required
 def index():
     """记账首页"""
     date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
@@ -35,6 +126,7 @@ def index():
 
 
 @finance_bp.route('/calendar')
+@finance_login_required
 def calendar_view():
     """日历视图"""
     today = datetime.now()
@@ -63,6 +155,7 @@ def calendar_view():
 
 
 @finance_bp.route('/add', methods=['GET', 'POST'])
+@finance_login_required
 def add():
     """添加记录页面"""
     if request.method == 'POST':
@@ -88,6 +181,7 @@ def add():
 
 
 @finance_bp.route('/edit/<int:transaction_id>', methods=['GET', 'POST'])
+@finance_login_required
 def edit(transaction_id):
     """编辑记录页面"""
     transaction = get_transaction_by_id(transaction_id)
@@ -115,6 +209,7 @@ def edit(transaction_id):
 
 
 @finance_bp.route('/api/add', methods=['POST'])
+@finance_login_required
 def api_add():
     """API: 添加记录"""
     data = request.get_json()
@@ -137,6 +232,7 @@ def api_add():
 
 
 @finance_bp.route('/api/quick-add', methods=['POST'])
+@finance_login_required
 def api_quick_add():
     """API: 快速添加（支持 "午饭 30" 格式：备注在前，金额在后）"""
     data = request.get_json()
@@ -193,6 +289,7 @@ def api_quick_add():
 
 
 @finance_bp.route('/api/edit/<int:transaction_id>', methods=['POST'])
+@finance_login_required
 def api_edit(transaction_id):
     """API: 编辑记录"""
     data = request.get_json()
@@ -213,6 +310,7 @@ def api_edit(transaction_id):
 
 
 @finance_bp.route('/api/delete/<int:transaction_id>', methods=['POST'])
+@finance_login_required
 def api_delete(transaction_id):
     """API: 删除记录"""
     try:
@@ -223,6 +321,7 @@ def api_delete(transaction_id):
 
 
 @finance_bp.route('/api/stats')
+@finance_login_required
 def api_stats():
     """API: 获取统计数据"""
     date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
@@ -231,6 +330,7 @@ def api_stats():
 
 
 @finance_bp.route('/api/daily-summary')
+@finance_login_required
 def api_daily_summary():
     """API: 获取每日总结"""
     date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
@@ -239,6 +339,7 @@ def api_daily_summary():
 
 
 @finance_bp.route('/api/categories')
+@finance_login_required
 def api_categories():
     """API: 获取分类列表"""
     type_filter = request.args.get('type')
@@ -247,6 +348,7 @@ def api_categories():
 
 
 @finance_bp.route('/api/transaction/<int:transaction_id>')
+@finance_login_required
 def api_get_transaction(transaction_id):
     """API: 获取单条记录"""
     transaction = get_transaction_by_id(transaction_id)
@@ -256,6 +358,7 @@ def api_get_transaction(transaction_id):
 
 
 @finance_bp.route('/api/transactions-by-date')
+@finance_login_required
 def api_transactions_by_date():
     """API: 获取指定日期的交易记录"""
     date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
@@ -304,6 +407,7 @@ def api_transactions_by_date():
 
 
 @finance_bp.route('/api/monthly-stats')
+@finance_login_required
 def api_monthly_stats():
     """API: 获取指定月份的每日统计数据"""
     year = request.args.get('year', datetime.now().year, type=int)
@@ -329,6 +433,7 @@ def api_monthly_stats():
 
 
 @finance_bp.route('/api/scenes')
+@finance_login_required
 def api_scenes():
     """API: 获取所有场景列表"""
     scenes = get_all_scenes()
@@ -336,6 +441,7 @@ def api_scenes():
 
 
 @finance_bp.route('/api/scene-stats')
+@finance_login_required
 def api_scene_stats():
     """API: 获取场景统计数据"""
     date_from = request.args.get('date_from')

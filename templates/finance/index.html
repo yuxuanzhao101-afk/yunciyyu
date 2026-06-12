@@ -627,6 +627,12 @@
     <div class="view-tabs">
         <a href="{{ url_for('finance.index') }}" class="view-tab active">列表</a>
         <a href="{{ url_for('finance.calendar_view') }}" class="view-tab">日历</a>
+        <a href="{{ url_for('finance.change_password') }}" class="view-tab" style="margin-left: auto; background: rgba(255,255,255,0.08);">
+            <i class="fas fa-key me-1"></i>修改密码
+        </a>
+        <a href="{{ url_for('finance.logout') }}" class="view-tab" style="background: rgba(245, 87, 108, 0.15); border-color: rgba(245, 87, 108, 0.3);">
+            <i class="fas fa-sign-out-alt me-1"></i>退出
+        </a>
     </div>
     
     <div class="stats-grid">

@@ -926,3 +926,71 @@ def get_quotes_count():
     conn.close()
     
     return count
+
+
+# ========== 财务密码功能 ==========
+
+def init_finance_password():
+    """初始化财务密码表"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS finance_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT NOT NULL UNIQUE,
+            value TEXT NOT NULL,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+
+def set_finance_password(password):
+    """设置财务密码"""
+    init_finance_password()
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    import hashlib
+    hashed = hashlib.sha256(password.encode()).hexdigest()
+    
+    cursor.execute('''
+        INSERT OR REPLACE INTO finance_settings (key, value, updated_at)
+        VALUES ('password', ?, CURRENT_TIMESTAMP)
+    ''', (hashed,))
+    
+    conn.commit()
+    conn.close()
+
+
+def get_finance_password_hash():
+    """获取财务密码哈希"""
+    init_finance_password()
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT value FROM finance_settings WHERE key = ?', ('password',))
+    row = cursor.fetchone()
+    conn.close()
+    
+    return row['value'] if row else None
+
+
+def verify_finance_password(password):
+    """验证财务密码"""
+    import hashlib
+    hashed = hashlib.sha256(password.encode()).hexdigest()
+    stored_hash = get_finance_password_hash()
+    
+    if stored_hash is None:
+        return False
+    
+    return hashed == stored_hash
+
+
+def has_finance_password():
+    """检查是否设置了财务密码"""
+    return get_finance_password_hash() is not None

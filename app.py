@@ -19,6 +19,9 @@ from modules.quotes import quotes_bp
 
 app = Flask(__name__, static_folder='static')
 
+# Session 密钥配置
+app.secret_key = os.environ.get('SECRET_KEY', 'yunciyyu-secret-key-2024')
+
 # 生产环境配置
 if os.environ.get('FLASK_ENV') == 'production':
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
